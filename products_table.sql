@@ -26,19 +26,66 @@ SET time_zone = "+00:00";
 --
 -- Table structure for table `products_table`
 --
+-- Create UserRegistration table
+CREATE TABLE UserRegistration (
+    user_id INT PRIMARY KEY,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    phone_number VARCHAR(20),
+    email VARCHAR(255),
+    address TEXT,
+    membership VARCHAR(100),
+    MembershipTypeID INT, -- Added for linking to MembershipTypes
+    start_date DATE,
+    end_date DATE
+);
 
-CREATE TABLE `products_table` (
-  `products_id` int(5) DEFAULT NULL,
-  `product_name` varchar(43) DEFAULT NULL,
-  `description` varchar(43) DEFAULT NULL,
-  `category` varchar(30) DEFAULT NULL,
-  `brand` varchar(30) DEFAULT NULL,
-  `quantity` int(11) DEFAULT NULL,
-  `best_before` date DEFAULT NULL,
-  `store_id` char(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-COMMIT;
+-- Create MembershipTypes table
+CREATE TABLE MembershipTypes (
+    MembershipTypeID INT PRIMARY KEY,
+    TypeName VARCHAR(255),
+    Description TEXT,
+    Price DECIMAL(10, 2)
+);
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- Add foreign key to UserRegistration for MembershipTypeID after MembershipTypes table is created
+ALTER TABLE UserRegistration
+ADD CONSTRAINT fk_user_membership
+FOREIGN KEY (MembershipTypeID) REFERENCES MembershipTypes(MembershipTypeID);
+
+-- Create Product table
+CREATE TABLE Product (
+    product_id INT,
+    product_name VARCHAR(255),
+    description TEXT,
+    category VARCHAR(100),
+    brand VARCHAR(100),
+    quantity INT,
+    best_before DATE,
+    store_id INT -- Assumes linking to a Store table not provided in your script
+    -- If a Store table exists, a foreign key constraint would be added similarly to other tables
+);
+
+-- Create TRANSACTION table
+CREATE TABLE TRANSACTION (
+    transaction_id INT,
+    user_id INT,
+    products TEXT,
+    total_price DECIMAL(10, 2),
+    location VARCHAR(255),
+    date DATE,
+    time TIME,
+    CONSTRAINT fk_transaction_user FOREIGN KEY (user_id) REFERENCES UserRegistration(user_id)
+);
+
+-- Assuming a Store table exists and needs linking to the Product table
+-- The following is an example and should be adjusted based on your actual Store table schema
+-- CREATE TABLE Store (
+--     store_id INT PRIMARY KEY,
+--     store_name VARCHAR(255),
+--     location TEXT
+-- );
+
+-- ALTER TABLE Product
+-- ADD CONSTRAINT fk_product_store
+-- FOREIGN KEY (store_id) REFERENCES Store(store_id);
