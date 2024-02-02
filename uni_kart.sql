@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 02, 2024 at 11:50 AM
+-- Generation Time: Feb 02, 2024 at 12:31 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `ukart`
+-- Database: `uni_kart`
 --
 
 -- --------------------------------------------------------
@@ -89,6 +89,15 @@ CREATE TABLE `membershiptypes` (
   `Description` text DEFAULT NULL,
   `Price` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `membershiptypes`
+--
+
+INSERT INTO `membershiptypes` (`MembershipTypeID`, `TypeName`, `Description`, `Price`) VALUES
+(1, 'Bronze', 'Bronze membership offers basic access to our product comparison tool, allowing customers to compare prices across different stores.', 10.00),
+(2, 'Silver', 'Silver membership includes all the benefits of Bronze, plus access to exclusive deals and promotions, and a 5% discount on all orders.', 20.00),
+(3, 'Gold', 'Gold membership provides all the benefits of Silver, in addition to free delivery for all orders, priority customer support, and a 10% discount on all orders.', 30.00);
 
 -- --------------------------------------------------------
 
