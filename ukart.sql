@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 02, 2024 at 11:15 AM
+-- Generation Time: Feb 02, 2024 at 11:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `uni_kart`
+-- Database: `ukart`
 --
 
 -- --------------------------------------------------------
@@ -33,6 +33,22 @@ CREATE TABLE `aldi` (
   `location` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `aldi`
+--
+
+INSERT INTO `aldi` (`product_id`, `price`, `location`) VALUES
+(101, 0.95, 'Aldi Birmingham'),
+(102, 1.15, 'Aldi Birmingham'),
+(103, 3.40, 'Aldi Birmingham'),
+(104, 0.28, 'Aldi Birmingham'),
+(201, 0.85, 'Aldi Birmingham'),
+(202, 2.40, 'Aldi Birmingham'),
+(203, 0.95, 'Aldi Birmingham'),
+(301, 0.65, 'Aldi Birmingham'),
+(302, 0.95, 'Aldi Birmingham'),
+(303, 0.75, 'Aldi Birmingham');
+
 -- --------------------------------------------------------
 
 --
@@ -44,6 +60,22 @@ CREATE TABLE `lidl` (
   `price` decimal(10,2) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `lidl`
+--
+
+INSERT INTO `lidl` (`product_id`, `price`, `location`) VALUES
+(101, 0.97, 'Lidl Birmingham'),
+(102, 1.18, 'Lidl Birmingham'),
+(103, 3.45, 'Lidl Birmingham'),
+(104, 0.29, 'Lidl Birmingham'),
+(201, 0.87, 'Lidl Birmingham'),
+(202, 2.45, 'Lidl Birmingham'),
+(203, 0.97, 'Lidl Birmingham'),
+(301, 0.68, 'Lidl Birmingham'),
+(302, 0.98, 'Lidl Birmingham'),
+(303, 0.78, 'Lidl Birmingham');
 
 -- --------------------------------------------------------
 
@@ -74,6 +106,22 @@ CREATE TABLE `product` (
   `best_before` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `product`
+--
+
+INSERT INTO `product` (`product_id`, `product_name`, `description`, `category`, `brand`, `quantity`, `best_before`) VALUES
+(101, 'Apples', 'Fresh Apples', 'Fruits', 'Generic', 100, '2023-12-31'),
+(102, 'Pears', 'Fresh Pears', 'Fruits', 'Generic', 100, '2023-12-31'),
+(103, 'Watermelon', 'Fresh Watermelon', 'Fruits', 'Generic', 50, '2023-12-31'),
+(104, 'Banana', 'Fresh Banana', 'Fruits', 'Generic', 100, '2023-12-31'),
+(201, 'Milk', 'Dairy Milk', 'Dairy', 'Generic', 200, '2023-12-31'),
+(202, 'Cheese', 'Cheddar Cheese', 'Dairy', 'Generic', 100, '2023-12-31'),
+(203, 'Yogurt', 'Greek Yogurt', 'Dairy', 'Generic', 150, '2023-12-31'),
+(301, 'Carrots', 'Fresh Carrots', 'Vegetables', 'Generic', 100, '2023-12-31'),
+(302, 'Broccoli', 'Fresh Broccoli', 'Vegetables', 'Generic', 100, '2023-12-31'),
+(303, 'Potato', 'Fresh Potato', 'Vegetables', 'Generic', 200, '2023-12-31');
+
 -- --------------------------------------------------------
 
 --
@@ -85,6 +133,22 @@ CREATE TABLE `tesco` (
   `price` decimal(10,2) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tesco`
+--
+
+INSERT INTO `tesco` (`product_id`, `price`, `location`) VALUES
+(101, 0.99, 'Tesco Birmingham'),
+(102, 1.20, 'Tesco Birmingham'),
+(103, 3.50, 'Tesco Birmingham'),
+(104, 0.30, 'Tesco Birmingham'),
+(201, 0.89, 'Tesco Birmingham'),
+(202, 2.50, 'Tesco Birmingham'),
+(203, 0.99, 'Tesco Birmingham'),
+(301, 0.70, 'Tesco Birmingham'),
+(302, 1.00, 'Tesco Birmingham'),
+(303, 0.80, 'Tesco Birmingham');
 
 -- --------------------------------------------------------
 
@@ -116,7 +180,6 @@ CREATE TABLE `userregistration` (
   `email` varchar(255) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `membership` varchar(100) DEFAULT NULL,
-  `MembershipTypeID` int(11) DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -166,8 +229,7 @@ ALTER TABLE `transaction`
 -- Indexes for table `userregistration`
 --
 ALTER TABLE `userregistration`
-  ADD PRIMARY KEY (`user_id`),
-  ADD KEY `fk_user_membership` (`MembershipTypeID`);
+  ADD PRIMARY KEY (`user_id`);
 
 --
 -- Constraints for dumped tables
@@ -196,12 +258,6 @@ ALTER TABLE `tesco`
 --
 ALTER TABLE `transaction`
   ADD CONSTRAINT `transaction_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `userregistration` (`user_id`);
-
---
--- Constraints for table `userregistration`
---
-ALTER TABLE `userregistration`
-  ADD CONSTRAINT `fk_user_membership` FOREIGN KEY (`MembershipTypeID`) REFERENCES `membershiptypes` (`MembershipTypeID`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
