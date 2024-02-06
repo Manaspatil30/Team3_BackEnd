@@ -15,7 +15,7 @@ const db = mysql.createPool({
     host: 'localhost',
     user: "root",
     password: "",
-    database: "uni_kart"
+    database: "unikartdatabase"
 })
 
 app.get('/',(req,res)=>{
@@ -25,6 +25,3 @@ app.get('/',(req,res)=>{
         res.send(result)
     })
 })
-
-app.get('/',(req,res)=>{
-    const selectQuery = "SELECT * from "
