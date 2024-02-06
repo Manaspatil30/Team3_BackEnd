@@ -25,3 +25,6 @@ app.get('/',(req,res)=>{
         res.send(result)
     })
 })
+
+app.get('/',(req,res)=>{
+    const selectQuery = "SELECT * from "

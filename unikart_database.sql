@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 02, 2024 at 11:35 AM
+-- Generation Time: Feb 06, 2024 at 08:58 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -169,6 +169,19 @@ CREATE TABLE `transaction` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `userbasket`
+--
+
+CREATE TABLE `userbasket` (
+  `basket_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `quantity` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `userregistration`
 --
 
@@ -226,10 +239,28 @@ ALTER TABLE `transaction`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `userbasket`
+--
+ALTER TABLE `userbasket`
+  ADD PRIMARY KEY (`basket_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `product_id` (`product_id`);
+
+--
 -- Indexes for table `userregistration`
 --
 ALTER TABLE `userregistration`
   ADD PRIMARY KEY (`user_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `userbasket`
+--
+ALTER TABLE `userbasket`
+  MODIFY `basket_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -258,6 +289,13 @@ ALTER TABLE `tesco`
 --
 ALTER TABLE `transaction`
   ADD CONSTRAINT `transaction_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `userregistration` (`user_id`);
+
+--
+-- Constraints for table `userbasket`
+--
+ALTER TABLE `userbasket`
+  ADD CONSTRAINT `user_basket_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `userregistration` (`user_id`),
+  ADD CONSTRAINT `user_basket_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
