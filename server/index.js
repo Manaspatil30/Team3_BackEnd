@@ -111,3 +111,48 @@ app.post('/basket/add', (req, res) => {
         }
     });
 });
+
+// Route to place a new order
+app.post('/orders/place', (req, res) => {
+    const { userId, basketId, orderStatus, deliveryAddress } = req.body;
+    const insertOrderQuery = `
+        INSERT INTO orders (basket_id, user_id, order_status, delivery_address)
+        VALUES (${basketId}, ${userId}, '${orderStatus}', '${deliveryAddress}')
+    `;
+
+    db.query(insertOrderQuery, (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            const orderId = result.insertId;
+
+            // Move basket items to order details
+            const moveItemsQuery = `
+                INSERT INTO orderdetails (order_id, store_product_id, quantity, price_at_purchase)
+                SELECT ${orderId}, b.store_product_id, b.quantity, sp.price
+                FROM user_basket b
+                JOIN storeproducts sp ON b.store_product_id = sp.store_product_id
+                WHERE b.user_id = ${userId}
+            `;
+
+            db.query(moveItemsQuery, (errMove, resultMove) => {
+                if (errMove) {
+                    console.log(errMove);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                } else {
+                    // Clear the user's basket after the order is placed
+                    const clearBasketQuery = `DELETE FROM user_basket WHERE user_id = ${userId}`;
+                    db.query(clearBasketQuery, (errClear, resultClear) => {
+                        if (errClear) {
+                            console.log(errClear);
+                            res.status(500).json({ error: 'Internal Server Error' });
+                        } else {
+                            res.status(201).json({ message: 'Order placed successfully' });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
