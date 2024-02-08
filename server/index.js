@@ -197,4 +197,33 @@ router.get('/api/price-comparison/:productId', (req, res) => {
         }
     });
 });
+//  Grocery products by price range
+router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
+    const minPrice = parseFloat(req.params.minPrice);
+    const maxPrice = parseFloat(req.params.maxPrice);
+
+    // Query to fetch grocery products within the specified price range
+    const selectQuery = `
+        SELECT p.product_name, p.description, p.category, sp.price
+        FROM product p
+        JOIN storeproducts sp ON p.product_id = sp.product_id
+        WHERE sp.price BETWEEN ? AND ?;
+    `;
+    db.query(selectQuery, [minPrice, maxPrice], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            // Prepare response object
+            const groceryList = result.map(row => ({
+                product_name: row.product_name,
+                description: row.description,
+                category: row.category,
+                price: row.price
+            }));
+
+            res.json(groceryList);
+        }
+    });
+});
 });
