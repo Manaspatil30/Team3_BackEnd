@@ -155,4 +155,19 @@ app.post('/orders/place', (req, res) => {
             });
         }
     });
+    
+    // Route to get all store addresses
+app.get('/api/store-addresses', (req, res) => {
+    const selectQuery = 'SELECT * FROM store_addresses';
+    
+    db.query(selectQuery, (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            res.json(result);
+        }
+    });
+});
+
 });
