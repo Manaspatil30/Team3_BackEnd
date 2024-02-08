@@ -171,3 +171,143 @@ app.get('/api/store-addresses', (req, res) => {
 });
 
 });
+
+//Add Products
+
+app.post('/product/add', (req, res) => {
+    const { product_name, description, category, quantity, best_before } = req.body;
+    const insertQuery = "INSERT INTO Product (product_name, description, category, quantity, best_before) VALUES (?, ?, ?, ?, ?)";
+    db.query(insertQuery, [product_name, description, category, quantity, best_before], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to add product");
+        }
+        res.status(201).send({message: "Product added successfully", productId: result.insertId});
+    });
+});
+
+//updatwe products
+
+app.put('/product/update/:id', (req, res) => {
+    const productId = req.params.id;
+    const { product_name, description, category, quantity, best_before } = req.body;
+    const updateQuery = "UPDATE Product SET product_name = ?, description = ?, category = ?, quantity = ?, best_before = ? WHERE product_id = ?";
+    db.query(updateQuery, [product_name, description, category, quantity, best_before, productId], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to update product");
+        }
+        res.status(200).send("Product updated successfully");
+    });
+});
+
+//List Products
+app.get('/products', (req, res) => {
+    const selectQuery = "SELECT * FROM Product";
+    db.query(selectQuery, (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to retrieve products");
+        }
+        res.json(results);
+    });
+});
+
+//Delete Product
+
+app.delete('/product/delete/:id', (req, res) => {
+    const productId = req.params.id;
+    const deleteQuery = "DELETE FROM Product WHERE product_id = ?";
+    db.query(deleteQuery, [productId], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to delete product");
+        }
+        res.status(200).send("Product deleted successfully");
+    });
+});
+
+//Add products to store
+
+app.post('/storeproduct/add', (req, res) => {
+    const { product_id, store_id, price } = req.body;
+    const insertQuery = "INSERT INTO StoreProducts (product_id, store_id, price) VALUES (?, ?, ?)";
+    db.query(insertQuery, [product_id, store_id, price], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to add product to store");
+        }
+        res.status(201).send({message: "Product added to store successfully", storeProductId: result.insertId});
+    });
+});
+
+//Update Product in Store
+
+app.put('/storeproduct/update/:id', (req, res) => {
+    const storeProductId = req.params.id;
+    const { price } = req.body; // Assuming you might want to update the price
+    const updateQuery = "UPDATE StoreProducts SET price = ? WHERE store_product_id = ?";
+    db.query(updateQuery, [price, storeProductId], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to update product in store");
+        }
+        res.status(200).send("Product in store updated successfully");
+    });
+});
+
+//List Products in a Store
+
+app.get('/storeproducts/:store_id', (req, res) => {
+    const storeId = req.params.store_id;
+    const selectQuery = "SELECT p.*, sp.price, sp.store_product_id FROM StoreProducts sp JOIN Product p ON sp.product_id = p.product_id WHERE sp.store_id = ?";
+    db.query(selectQuery, [storeId], (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to retrieve products for store");
+        }
+        res.json(results);
+    });
+});
+
+//Delete Products from a Store
+
+app.delete('/storeproduct/delete/:id', (req, res) => {
+    const storeProductId = req.params.id;
+    const deleteQuery = "DELETE FROM StoreProducts WHERE store_product_id = ?";
+    db.query(deleteQuery, [storeProductId], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to delete product from store");
+        }
+        res.status(200).send("Product removed from store successfully");
+    });
+});
+
+// Filter Products
+
+app.get('/products/category/:category', (req, res) => {
+    const { category } = req.params;
+    const selectQuery = "SELECT * FROM Product WHERE category = ?";
+    db.query(selectQuery, [category], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Failed to filter products by category");
+        }
+        res.json(results);
+    });
+});
+
+// Search Products Route
+
+app.get('/products/search', (req, res) => {
+    const { search } = req.query; 
+    const searchQuery = "SELECT * FROM Product WHERE product_name LIKE ?";
+    db.query(searchQuery, [`%${search}%`], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Failed to search for products");
+        }
+        res.json(results);
+    });
+});
