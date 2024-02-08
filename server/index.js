@@ -170,4 +170,31 @@ app.get('/api/store-addresses', (req, res) => {
     });
 });
 
+// Endpoint to get price comparisons for a specific product
+router.get('/api/price-comparison/:productId', (req, res) => {
+    const productId = req.params.productId;
+
+    // Query to fetch prices from storeproducts table for the given product
+    const selectQuery = `
+        SELECT s.store_name, sp.price
+        FROM storeproducts sp
+        JOIN stores s ON sp.store_id = s.store_id
+        WHERE sp.product_id = ?;
+    `;
+
+    db.query(selectQuery, [productId], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            // Prepare response object
+            const prices = result.map(row => ({
+                store_name: row.store_name,
+                price: row.price
+            }));
+
+            res.json(prices);
+        }
+    });
+});
 });
