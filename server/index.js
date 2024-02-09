@@ -367,3 +367,138 @@ app.get('/products/search', (req, res) => {
         res.json(results);
     });
 });
+
+
+
+
+
+
+
+/* Sign up and sign in*/
+
+// Sign Up Route
+app.post('/signup', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const insertQuery = "INSERT INTO users (email, password) VALUES (?, ?)";
+        db.query(insertQuery, [email, hashedPassword], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            res.status(201).json({ message: 'User registered successfully' });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// Sign In Route
+
+const crypto = require('crypto');
+
+const secretKey = crypto.randomBytes(32).toString('hex');
+
+app.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const selectQuery = "SELECT * FROM users WHERE email = ?";
+        db.query(selectQuery, [email], async (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            if (result.length === 0) {
+                return res.status(401).json({ error: 'Authentication failed. User not found.' });
+            }
+            const user = result[0];
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            if (!passwordMatch) {
+                return res.status(401).json({ error: 'Authentication failed. Invalid password.' });
+            }
+            const token = jwt.sign({ userId: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
+            res.status(200).json({ token: token });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// Protected Route Example
+app.get('/protected', authenticateToken, (req, res) => {
+    res.json({ message: 'Protected Route Accessed Successfully' });
+});
+
+
+
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token == null) return res.status(401).json({ error: 'Authentication failed. Token not provided.' });
+    jwt.verify(token, secretKey, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Authentication failed. Invalid token.' });
+        req.user = user;
+        next();
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/*Payment  gateway integration*/
+
+
+const gateway = new braintree.BraintreeGateway({
+    environment: braintree.Environment.Sandbox,
+    merchantId: 'rppzqr3dvsk2xbst',
+    publicKey: 'xd9v7ggwgj862p6n',
+    privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
+});
+
+// Endpoint to generate a client token for the Braintree client
+app.get('/client_token', async (req, res) => {
+    try {
+        const response = await gateway.clientToken.generate({});
+        res.send(response.clientToken);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Failed to generate client token');
+    }
+});
+
+// Endpoint to process a payment
+app.post('/checkout', async (req, res) => {
+    const { amount, payment_method_nonce } = req.body;
+
+    try {
+        const saleRequest = {
+            amount: amount,
+            paymentMethodNonce: payment_method_nonce,
+            options: {
+                submitForSettlement: true
+            }
+        };
+
+        const result = await gateway.transaction.sale(saleRequest);
+
+        if (result.success || result.transaction) {
+            res.status(200).send("Payment successful");
+        } else {
+            res.status(400).send("Payment failed");
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Failed to process payment');
+    }
+});
