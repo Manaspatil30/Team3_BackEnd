@@ -299,6 +299,22 @@ CREATE TABLE `userregistration` (
   `MembershipTypeID` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- Table structure for table `ratings_and_reviews`
+CREATE TABLE `ratings_and_reviews` (
+  `review_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `rating` int(11) DEFAULT NULL,
+  `review_text` text DEFAULT NULL,
+  `review_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`review_id`),
+  KEY `user_id` (`user_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `ratings_and_reviews_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `userregistration` (`user_id`),
+  CONSTRAINT `ratings_and_reviews_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
 --
 -- Indexes for dumped tables
 --
