@@ -154,7 +154,7 @@ app.post('/orders/place', (req, res) => {
                 }
             });
         }
-    });
+    })
     
     // Route to get all store addresses
 app.get('/api/store-addresses', (req, res) => {
@@ -186,7 +186,7 @@ app.post('/product/add', (req, res) => {
     });
 });
 
-//updatwe products
+//update products
 
 app.put('/product/update/:id', (req, res) => {
     const productId = req.params.id;
@@ -217,6 +217,7 @@ app.get('/products', (req, res) => {
 
 app.delete('/product/delete/:id', (req, res) => {
     const productId = req.params.id;
+    console.log(productId)
     const deleteQuery = "DELETE FROM Product WHERE product_id = ?";
     db.query(deleteQuery, [productId], (err, result) => {
         if (err) {
@@ -299,15 +300,31 @@ app.get('/products/category/:category', (req, res) => {
 });
 
 // Search Products Route
-
 app.get('/products/search', (req, res) => {
-    const { search } = req.query; 
-    const searchQuery = "SELECT * FROM Product WHERE product_name LIKE ?";
-    db.query(searchQuery, [`%${search}%`], (err, results) => {
+    const { search } = req.query;
+
+    // Check if the search parameter is missing or empty
+    if (!search || search.trim() === '') {
+        return res.status(400).json({ error: "Search parameter is missing or empty" });
+    }
+
+    const searchQuery = "SELECT * FROM Product WHERE LOWER(product_name) LIKE LOWER(?)";
+    const sqlParams = [`%${search}%`];
+
+    console.log("Query:", searchQuery);
+    console.log("Parameters:", sqlParams);
+
+    db.query(searchQuery, sqlParams, (err, results) => {
         if (err) {
             console.error(err);
-            return res.status(500).send("Failed to search for products");
+            return res.status(500).json({ error: "Failed to search for products" });
         }
+
+        console.log("Results:", results);
+
         res.json(results);
     });
 });
+
+
+
