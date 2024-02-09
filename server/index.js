@@ -78,15 +78,23 @@ app.delete('/user/delete/:id', (req, res) => {
         }
     });
 });
-// Route to get user's basket
-app.get('/basket/:userId', (req, res) => {
-    const userId = req.params.userId;
-    const selectQuery = `SELECT b.*, p.product_name, p.price
-                        FROM user_basket b
-                        JOIN product p ON b.product_id = p.product_id
-                        WHERE b.user_id = ${userId}`;
-    
-    db.query(selectQuery, (err, result) => {
+// Route to get user's basket with product prices
+router.get('/api/user-basket/:user_id', (req, res) => {
+    const userId = req.params.user_id;
+
+    // Query to find users basket
+    const selectQuery = `
+        SELECT b.basket_id, b.user_id, b.created_at,
+               bi.basket_item_id, bi.store_product_id, bi.quantity,
+               sp.price AS product_price
+        FROM basket b
+        LEFT JOIN basketitems bi ON b.basket_id = bi.basket_id
+        LEFT JOIN storeproducts sp ON bi.store_product_id = sp.store_product_id
+        WHERE b.user_id = ?
+    `;
+
+    // Prepare response 
+    db.query(selectQuery, [userId], (err, result) => {
         if (err) {
             console.log(err);
             res.status(500).json({ error: 'Internal Server Error' });
@@ -95,66 +103,6 @@ app.get('/basket/:userId', (req, res) => {
         }
     });
 });
-
-// Route to add a product to the user's basket
-app.post('/basket/add', (req, res) => {
-    const { userId, productId, quantity } = req.body;
-    const insertQuery = `INSERT INTO user_basket (user_id, product_id, quantity) 
-                         VALUES (${userId}, ${productId}, ${quantity})`;
-    
-    db.query(insertQuery, (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-            res.json({ message: 'Product added to the basket successfully' });
-        }
-    });
-});
-
-// Route to place a new order
-app.post('/orders/place', (req, res) => {
-    const { userId, basketId, orderStatus, deliveryAddress } = req.body;
-    const insertOrderQuery = `
-        INSERT INTO orders (basket_id, user_id, order_status, delivery_address)
-        VALUES (${basketId}, ${userId}, '${orderStatus}', '${deliveryAddress}')
-    `;
-
-    db.query(insertOrderQuery, (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-            const orderId = result.insertId;
-
-            // Move basket items to order details
-            const moveItemsQuery = `
-                INSERT INTO orderdetails (order_id, store_product_id, quantity, price_at_purchase)
-                SELECT ${orderId}, b.store_product_id, b.quantity, sp.price
-                FROM user_basket b
-                JOIN storeproducts sp ON b.store_product_id = sp.store_product_id
-                WHERE b.user_id = ${userId}
-            `;
-
-            db.query(moveItemsQuery, (errMove, resultMove) => {
-                if (errMove) {
-                    console.log(errMove);
-                    res.status(500).json({ error: 'Internal Server Error' });
-                } else {
-                    // Clear the user's basket after the order is placed
-                    const clearBasketQuery = `DELETE FROM user_basket WHERE user_id = ${userId}`;
-                    db.query(clearBasketQuery, (errClear, resultClear) => {
-                        if (errClear) {
-                            console.log(errClear);
-                            res.status(500).json({ error: 'Internal Server Error' });
-                        } else {
-                            res.status(201).json({ message: 'Order placed successfully' });
-                        }
-                    });
-                }
-            });
-        }
-    })
     
     // Route to get all store addresses
 app.get('/api/store-addresses', (req, res) => {
