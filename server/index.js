@@ -1,11 +1,14 @@
 const express = require('express')
 const mysql = require('mysql')
 const bodyParser = require('body-parser')
+const braintree = require('braintree')
+const cors = require('cors')
 
 
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
+app.use(cors());
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
@@ -14,7 +17,7 @@ app.listen(3001, (req, res)=>{
 const db = mysql.createPool({
     host: 'localhost',
     user: "root",
-    password: "",
+    password: "password",
     database: "unikartdatabase"
 })
 
@@ -40,9 +43,9 @@ app.get('/user/:id', (req, res) => {
 });
 
 app.post('/user/add', (req, res) => {
-    const { first_name, last_name, phone_number, email, address, membership, start_date, end_date } = req.body;
-    const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, membership, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    db.query(insertQuery, [first_name, last_name, phone_number, email, address, membership, start_date, end_date], (err, result) => {
+    const { first_name, last_name, phone_number, email, address, MembershipTypeID } = req.body;
+    const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID) VALUES (?, ?, ?, ?, ?, ?)";
+    db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID], (err, result) => {
         if (err) {
             console.log(err);
             res.status(500).send("Failed to add user");
