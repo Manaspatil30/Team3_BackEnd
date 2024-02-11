@@ -3,6 +3,8 @@ const mysql = require('mysql')
 const bodyParser = require('body-parser')
 const braintree = require('braintree')
 const cors = require('cors')
+const bcrypt =require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 
 const app = express();
@@ -394,11 +396,11 @@ app.get('/products/search', (req, res) => {
 
 // Sign Up Route
 app.post('/signup', async (req, res) => {
-    const { email, password } = req.body;
+    const { first_name, last_name, phone_number, email, address, password, MembershipTypeID } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const insertQuery = "INSERT INTO users (email, password) VALUES (?, ?)";
-        db.query(insertQuery, [email, hashedPassword], (err, result) => {
+        const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, password, MembershipTypeID) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        db.query(insertQuery, [first_name, last_name, phone_number, email, address, password, MembershipTypeID], (err, result) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: 'Internal Server Error' });
@@ -420,7 +422,7 @@ const secretKey = crypto.randomBytes(32).toString('hex');
 app.post('/signin', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const selectQuery = "SELECT * FROM users WHERE email = ?";
+        const selectQuery = "SELECT * FROM userregistration WHERE email = ?";
         db.query(selectQuery, [email], async (err, result) => {
             if (err) {
                 console.error(err);
@@ -430,17 +432,17 @@ app.post('/signin', async (req, res) => {
                 return res.status(401).json({ error: 'Authentication failed. User not found.' });
             }
             const user = result[0];
-            const passwordMatch = await bcrypt.compare(password, user.password);
+            const passwordMatch = bcrypt.compare(password, user.password);
             if (!passwordMatch) {
                 return res.status(401).json({ error: 'Authentication failed. Invalid password.' });
             }
-            const token = jwt.sign({ userId: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
-            res.status(200).json({ token: token });
+            const token = jwt.sign({ userId: user.user_id, email: user.email }, secretKey, { expiresIn: '1h' });
+            res.status(200).json({ token: token, userId: user.user_id });
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
 // Protected Route Example
