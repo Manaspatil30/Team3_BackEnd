@@ -520,3 +520,72 @@ app.post('/checkout', async (req, res) => {
         res.status(500).send('Failed to process payment');
     }
 });
+
+
+
+/* Rating and review route*/
+
+// Define routes for product ratings and reviews
+app.post('/api/product/:product_id/rate', (req, res) => {
+    const productId = req.params.product_id;
+    const { user_id, rating } = req.body;
+
+    // Insert the rating into the database
+    const sql = `INSERT INTO product_ratings (user_id, product_id, rating) VALUES (?, ?, ?)`;
+    connection.query(sql, [user_id, productId, rating], (err, result) => {
+        if (err) {
+            console.error('Error rating the product: ', err);
+            res.status(500).json({ error: 'Error rating the product' });
+            return;
+        }
+        res.status(201).json({ message: 'Product rated successfully' });
+    });
+});
+
+app.get('/api/product/:product_id/ratings', (req, res) => {
+    const productId = req.params.product_id;
+
+    // Retrieve ratings for the product from the database
+    const sql = `SELECT rating FROM product_ratings WHERE product_id = ?`;
+    connection.query(sql, [productId], (err, results) => {
+        if (err) {
+            console.error('Error retrieving ratings: ', err);
+            res.status(500).json({ error: 'Error retrieving ratings' });
+            return;
+        }
+        const ratings = results.map((result) => result.rating);
+        res.status(200).json({ ratings });
+    });
+});
+
+app.post('/api/product/:product_id/review', (req, res) => {
+    const productId = req.params.product_id;
+    const { user_id, review } = req.body;
+
+    // Insert the review into the database
+    const sql = `INSERT INTO product_reviews (user_id, product_id, review) VALUES (?, ?, ?)`;
+    connection.query(sql, [user_id, productId, review], (err, result) => {
+        if (err) {
+            console.error('Error reviewing the product: ', err);
+            res.status(500).json({ error: 'Error reviewing the product' });
+            return;
+        }
+        res.status(201).json({ message: 'Product reviewed successfully' });
+    });
+});
+
+app.get('/api/product/:product_id/reviews', (req, res) => {
+    const productId = req.params.product_id;
+
+    // Retrieve reviews for the product from the database
+    const sql = `SELECT review FROM product_reviews WHERE product_id = ?`;
+    connection.query(sql, [productId], (err, results) => {
+        if (err) {
+            console.error('Error retrieving reviews: ', err);
+            res.status(500).json({ error: 'Error retrieving reviews' });
+            return;
+        }
+        const reviews = results.map((result) => result.review);
+        res.status(200).json({ reviews });
+    });
+});

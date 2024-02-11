@@ -327,3 +327,15 @@ CREATE TABLE product_ratings (
   FOREIGN KEY (product_id) REFERENCES product(product_id),
   FOREIGN KEY (user_id) REFERENCES userregistration(user_id)
 );
+
+-- Table structure for table `product_reviews`
+CREATE TABLE `product_reviews` (
+  `review_id` INT NOT NULL AUTO_INCREMENT,
+  `product_id` INT,
+  `user_id` INT,
+  `review` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`review_id`),
+  FOREIGN KEY (`product_id`) REFERENCES `product`(`product_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `userregistration`(`user_id`)
+);
