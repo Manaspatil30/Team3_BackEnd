@@ -78,6 +78,125 @@ app.delete('/user/delete/:id', (req, res) => {
         }
     });
 });
+
+/* Sign up and sign in*/
+
+// Sign Up Route
+app.post('/signup', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const insertQuery = "INSERT INTO users (email, password) VALUES (?, ?)";
+        db.query(insertQuery, [email, hashedPassword], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            res.status(201).json({ message: 'User registered successfully' });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// Sign In Route
+
+const crypto = require('crypto');
+
+const secretKey = crypto.randomBytes(32).toString('hex');
+
+app.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const selectQuery = "SELECT * FROM users WHERE email = ?";
+        db.query(selectQuery, [email], async (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            if (result.length === 0) {
+                return res.status(401).json({ error: 'Authentication failed. User not found.' });
+            }
+            const user = result[0];
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            if (!passwordMatch) {
+                return res.status(401).json({ error: 'Authentication failed. Invalid password.' });
+            }
+            const token = jwt.sign({ userId: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
+            res.status(200).json({ token: token });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// Protected Route Example
+app.get('/protected', authenticateToken, (req, res) => {
+    res.json({ message: 'Protected Route Accessed Successfully' });
+});
+
+
+
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token == null) return res.status(401).json({ error: 'Authentication failed. Token not provided.' });
+    jwt.verify(token, secretKey, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Authentication failed. Invalid token.' });
+        req.user = user;
+        next();
+    });
+}
+
+/*Payment  gateway integration*/
+
+
+const gateway = new braintree.BraintreeGateway({
+    environment: braintree.Environment.Sandbox,
+    merchantId: 'rppzqr3dvsk2xbst',
+    publicKey: 'xd9v7ggwgj862p6n',
+    privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
+});
+
+// Endpoint to generate a client token for the Braintree client
+app.get('/client_token', async (req, res) => {
+    try {
+        const response = await gateway.clientToken.generate({});
+        res.send(response.clientToken);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Failed to generate client token');
+    }
+});
+
+// Endpoint to process a payment
+app.post('/checkout', async (req, res) => {
+    const { amount, payment_method_nonce } = req.body;
+
+    try {
+        const saleRequest = {
+            amount: amount,
+            paymentMethodNonce: payment_method_nonce,
+            options: {
+                submitForSettlement: true
+            }
+        };
+
+        const result = await gateway.transaction.sale(saleRequest);
+
+        if (result.success || result.transaction) {
+            res.status(200).send("Payment successful");
+        } else {
+            res.status(400).send("Payment failed");
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Failed to process payment');
+    }
+});
+
 // Route to get user's basket
 app.get('/basket/:userId', (req, res) => {
     const userId = req.params.userId;
@@ -228,19 +347,34 @@ router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
 });
 });
 
-//Add Products
+//Admin
 
 app.post('/product/add', (req, res) => {
-    const { product_name, description, category, quantity, best_before } = req.body;
-    const insertQuery = "INSERT INTO Product (product_name, description, category, quantity, best_before) VALUES (?, ?, ?, ?, ?)";
-    db.query(insertQuery, [product_name, description, category, quantity, best_before], (err, result) => {
+    const { product_name, description, category, quantity, best_before, image_url, store_id } = req.body;
+
+    // Insert into Product table
+    const insertProductQuery = "INSERT INTO Product (product_name, description, category, quantity, best_before, image_url) VALUES (?, ?, ?, ?, ?, ?)";
+    db.query(insertProductQuery, [product_name, description, category, quantity, best_before, image_url], (err, result) => {
         if (err) {
             console.log(err);
             return res.status(500).send("Failed to add product");
         }
-        res.status(201).send({message: "Product added successfully", productId: result.insertId});
+
+        const productId = result.insertId;
+
+        // Insert into StoreProducts table
+        const insertStoreProductQuery = "INSERT INTO StoreProducts (product_id, store_id, price) VALUES (?, ?, ?)";
+        db.query(insertStoreProductQuery, [productId, store_id, 0], (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send("Failed to add product to store");
+            }
+
+            res.status(201).send({ message: "Product added successfully", productId });
+        });
     });
 });
+
 
 //update products
 
@@ -341,6 +475,96 @@ app.delete('/storeproduct/delete/:id', (req, res) => {
     });
 });
 
+//Managing Products
+app.get('/products', (req, res) => {
+    let { page, pageSize, category } = req.query;
+    page = page || 1;
+    pageSize = pageSize || 10;
+    let query = "SELECT * FROM Product";
+    let queryParams = [];
+
+    if (category) {
+        query += " WHERE category = ?";
+        queryParams.push(category);
+    }
+
+    query += " LIMIT ? OFFSET ?";
+    const offset = (page - 1) * pageSize;
+    queryParams.push(parseInt(pageSize), offset);
+
+    db.query(query, queryParams, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Failed to retrieve products");
+        }
+        res.json(results);
+    });
+});
+
+// View orders
+
+app.get('/orders', (req, res) => {
+    const { page, pageSize } = req.query;
+    const limit = parseInt(pageSize) || 10;
+    const offset = ((parseInt(page) || 1) - 1) * limit;
+
+    const query = "SELECT * FROM orders LIMIT ? OFFSET ?";
+    db.query(query, [limit, offset], (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to retrieve orders");
+        }
+        res.json(results);
+    });
+});
+
+// Edit customer details
+
+app.put('/customer/update/:id', (req, res) => {
+    const customerId = req.params.id;
+    const { name, email, address } = req.body;
+    const query = "UPDATE userregistration SET name = ?, email = ?, address = ? WHERE user_id = ?";
+    db.query(query, [name, email, address, customerId], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to update customer information");
+        }
+        res.send("Customer information updated successfully");
+    });
+});
+//Update Inventory 
+
+app.put('/inventory/update/:productId', (req, res) => {
+    const productId = req.params.productId;
+    const { stock } = req.body; // This is the new stock level
+    const query = "UPDATE Product SET quantity = ? WHERE product_id = ?";
+    db.query(query, [stock, productId], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to update inventory");
+        }
+        res.send("Inventory updated successfully");
+    });
+});
+
+//Process Orders
+
+app.put('/orders/process/:id', (req, res) => {
+    const orderId = req.params.id;
+    const query = "UPDATE orders SET order_status = 'Processed' WHERE order_id = ?";
+    db.query(query, [orderId], (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to process order");
+        }
+        res.send("Order processed successfully");
+    });
+});
+
+
+
+//Customer
+
 // Filter Products
 
 app.get('/products/category/:category', (req, res) => {
@@ -382,120 +606,3 @@ app.get('/products/search', (req, res) => {
     });
 });
 
-/* Sign up and sign in*/
-
-// Sign Up Route
-app.post('/signup', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const insertQuery = "INSERT INTO users (email, password) VALUES (?, ?)";
-        db.query(insertQuery, [email, hashedPassword], (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-            res.status(201).json({ message: 'User registered successfully' });
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-// Sign In Route
-
-const crypto = require('crypto');
-
-const secretKey = crypto.randomBytes(32).toString('hex');
-
-app.post('/signin', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const selectQuery = "SELECT * FROM users WHERE email = ?";
-        db.query(selectQuery, [email], async (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-            if (result.length === 0) {
-                return res.status(401).json({ error: 'Authentication failed. User not found.' });
-            }
-            const user = result[0];
-            const passwordMatch = await bcrypt.compare(password, user.password);
-            if (!passwordMatch) {
-                return res.status(401).json({ error: 'Authentication failed. Invalid password.' });
-            }
-            const token = jwt.sign({ userId: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
-            res.status(200).json({ token: token });
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-// Protected Route Example
-app.get('/protected', authenticateToken, (req, res) => {
-    res.json({ message: 'Protected Route Accessed Successfully' });
-});
-
-
-
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (token == null) return res.status(401).json({ error: 'Authentication failed. Token not provided.' });
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Authentication failed. Invalid token.' });
-        req.user = user;
-        next();
-    });
-}
-
-/*Payment  gateway integration*/
-
-
-const gateway = new braintree.BraintreeGateway({
-    environment: braintree.Environment.Sandbox,
-    merchantId: 'rppzqr3dvsk2xbst',
-    publicKey: 'xd9v7ggwgj862p6n',
-    privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
-});
-
-// Endpoint to generate a client token for the Braintree client
-app.get('/client_token', async (req, res) => {
-    try {
-        const response = await gateway.clientToken.generate({});
-        res.send(response.clientToken);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to generate client token');
-    }
-});
-
-// Endpoint to process a payment
-app.post('/checkout', async (req, res) => {
-    const { amount, payment_method_nonce } = req.body;
-
-    try {
-        const saleRequest = {
-            amount: amount,
-            paymentMethodNonce: payment_method_nonce,
-            options: {
-                submitForSettlement: true
-            }
-        };
-
-        const result = await gateway.transaction.sale(saleRequest);
-
-        if (result.success || result.transaction) {
-            res.status(200).send("Payment successful");
-        } else {
-            res.status(400).send("Payment failed");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to process payment');
-    }
-});
