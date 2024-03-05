@@ -509,7 +509,7 @@ app.post('/checkout', async (req, res) => {
 });
 
 // route to filter products lowest to highest 
-router.get('/products/lowest-to-highest', async (req, res) => {
+app.get('/products/lowest-to-highest', async (req, res) => {
     try {
       // Query the database to get products sorted by price
       const query = 'SELECT * FROM product ORDER BY price ASC';
@@ -524,7 +524,7 @@ router.get('/products/lowest-to-highest', async (req, res) => {
   });
 
   // Route to get products sorted by price from highest to lowest
-router.get('/products/highest-to-lowest', async (req, res) => {
+app.get('/products/highest-to-lowest', async (req, res) => {
     try {
       // Query the database to get products sorted by price in descending order
       const query = 'SELECT * FROM product ORDER BY price DESC';
