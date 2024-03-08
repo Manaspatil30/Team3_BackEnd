@@ -1,12 +1,12 @@
 const express = require('express')
-const mysql = require('mysql')
 const bodyParser = require('body-parser')
 const braintree = require('braintree')
 const cors = require('cors')
 const bcrypt =require('bcrypt')
 const jwt = require('jsonwebtoken')
-const imageRoutes = require('./imageRoutes'); // Import image routes module
-const adminRoutes = require('./adminRoutes');
+const imageRoutes = require('./routes/imageRoutes'); // Import image routes module
+const adminRoutes = require('./routes/adminRoutes');
+const db=require( './config/db');
 
 const app = express();
 app.use(express.json());
@@ -23,12 +23,7 @@ app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
 })
 
-const db = mysql.createPool({
-    host: 'localhost',
-    user: "root",
-    password: "",
-    database: "unikartdatabase"
-})
+
 
 app.get('/',(req,res)=>{
     const selectQuery = "SELECT * from userregistration"

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('./db'); // Import your database connection
+const db = require('../config/db'); // Import your database connection
 
 // Secret key for JWT
 const crypto = require('crypto');

@@ -4,10 +4,10 @@ const cloudinary = require('cloudinary').v2; // Cloudinary SDK
 const mysql = require('mysql');
 
 const router = express.Router();
-
+const db=require( '../config/db')
 // Cloudinary configuration
 
-cloudinary.v2.config({
+cloudinary.config({
   cloud_name: 'dhtw6erpk',
   api_key: '116233414617767',
   api_secret: 'QGxpcw5tvz3s3ZdoBlWA89qgtus',
@@ -15,20 +15,13 @@ cloudinary.v2.config({
 });
 
 
-// MySQL database connection
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: "root",
-  password: "",
-  database: "unikartdatabase"
-});
 
-db.connect((err) => {
-  if (err) {
-    throw err;
-  }
-  console.log('Connected to database');
-});
+// db.connect((err) => {
+//   if (err) {
+//     throw err;
+//   }
+//   console.log('Connected to database');
+// });
 
 // Route to upload image for a product to Cloudinary
 router.post('/upload-image/:productId', async (req, res) => {
