@@ -5,7 +5,8 @@ const jwt = require('jsonwebtoken');
 const db = require('./db'); // Import your database connection
 
 // Secret key for JWT
-const secretKey = 'your_secret_key';
+const crypto = require('crypto');
+const secretKey = crypto.randomBytes(32).toString('hex');
 
 router.post('/register', async (req, res) => {
     try {

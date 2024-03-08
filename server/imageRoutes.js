@@ -6,18 +6,21 @@ const mysql = require('mysql');
 const router = express.Router();
 
 // Cloudinary configuration
-cloudinary.config({
-  cloud_name: 'your_cloud_name',
-  api_key: 'your_api_key',
-  api_secret: 'your_api_secret'
+
+cloudinary.v2.config({
+  cloud_name: 'dhtw6erpk',
+  api_key: '116233414617767',
+  api_secret: 'QGxpcw5tvz3s3ZdoBlWA89qgtus',
+  secure: true,
 });
+
 
 // MySQL database connection
 const db = mysql.createConnection({
   host: 'localhost',
-  user: 'your_username',
-  password: 'your_password',
-  database: 'your_database_name'
+  user: "root",
+  password: "",
+  database: "unikartdatabase"
 });
 
 db.connect((err) => {
