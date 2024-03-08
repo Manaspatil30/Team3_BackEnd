@@ -5,12 +5,19 @@ const braintree = require('braintree')
 const cors = require('cors')
 const bcrypt =require('bcrypt')
 const jwt = require('jsonwebtoken')
-
+const imageRoutes = require('./imageRoutes'); // Import image routes module
+const adminRoutes = require('./adminRoutes');
 
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
+
+// Use image routes
+app.use('/admin/images', imageRoutes);
+//admin registration routes
+app.use('/admin', adminRoutes);
+
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
@@ -639,35 +646,35 @@ app.post('/signup', async (req, res) => {
 
 // Sign In Route
 
-const crypto = require('crypto');
+// const crypto = require('crypto');
 
-const secretKey = crypto.randomBytes(32).toString('hex');
+// const secretKey = crypto.randomBytes(32).toString('hex');
 
-app.post('/signin', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const selectQuery = "SELECT * FROM userregistration WHERE email = ?";
-        db.query(selectQuery, [email], async (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-            if (result.length === 0) {
-                return res.status(401).json({ error: 'Authentication failed. User not found.' });
-            }
-            const user = result[0];
-            const passwordMatch = bcrypt.compare(password, user.password);
-            if (!passwordMatch) {
-                return res.status(401).json({ error: 'Authentication failed. Invalid password.' });
-            }
-            const token = jwt.sign({ userId: user.user_id, email: user.email }, secretKey, { expiresIn: '1h' });
-            res.status(200).json({ token: token, userId: user.user_id });
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+// app.post('/signin', async (req, res) => {
+//     const { email, password } = req.body;
+//     try {
+//         const selectQuery = "SELECT * FROM userregistration WHERE email = ?";
+//         db.query(selectQuery, [email], async (err, result) => {
+//             if (err) {
+//                 console.error(err);
+//                 return res.status(500).json({ error: 'Internal Server Error' });
+//             }
+//             if (result.length === 0) {
+//                 return res.status(401).json({ error: 'Authentication failed. User not found.' });
+//             }
+//             const user = result[0];
+//             const passwordMatch = bcrypt.compare(password, user.password);
+//             if (!passwordMatch) {
+//                 return res.status(401).json({ error: 'Authentication failed. Invalid password.' });
+//             }
+//             const token = jwt.sign({ userId: user.user_id, email: user.email }, secretKey, { expiresIn: '1h' });
+//             res.status(200).json({ token: token, userId: user.user_id });
+//         });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
 
 // Protected Route Example
 app.get('/protected', authenticateToken, (req, res) => {
@@ -688,25 +695,15 @@ function authenticateToken(req, res, next) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
 /*Payment  gateway integration*/
 
 
-const gateway = new braintree.BraintreeGateway({
-    environment: braintree.Environment.Sandbox,
-    merchantId: 'rppzqr3dvsk2xbst',
-    publicKey: 'xd9v7ggwgj862p6n',
-    privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
-});
+// const gateway = new braintree.BraintreeGateway({
+//     environment: braintree.Environment.Sandbox,
+//     merchantId: 'rppzqr3dvsk2xbst',
+//     publicKey: 'xd9v7ggwgj862p6n',
+//     privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
+// });
 
 // Endpoint to generate a client token for the Braintree client
 app.get('/client_token', async (req, res) => {
