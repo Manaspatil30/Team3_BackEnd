@@ -1,6 +1,5 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const braintree = require('braintree')
 const cors = require('cors')
 const bcrypt =require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -157,15 +156,6 @@ function authenticateToken(req, res, next) {
     });
 }
 
-/*Payment  gateway integration*/
-
-
-const gateway = new braintree.BraintreeGateway({
-    environment: braintree.Environment.Sandbox,
-    merchantId: 'rppzqr3dvsk2xbst',
-    publicKey: 'xd9v7ggwgj862p6n',
-    privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
-});
 
 // Endpoint to generate a client token for the Braintree client
 app.get('/client_token', async (req, res) => {
@@ -296,7 +286,7 @@ app.post('/orders/place', (req, res) => {
     });
     
     // Route to get all store addresses
-app.get('/api/store-addresses', (req, res) => {
+app.get('/api/storeAddress', (req, res) => {
     const selectQuery = 'SELECT * FROM store_addresses';
     
     db.query(selectQuery, (err, result) => {
