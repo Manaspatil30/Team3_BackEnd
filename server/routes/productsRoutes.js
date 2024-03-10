@@ -1,12 +1,11 @@
-const app = express();
-app.use(express.json());
-app.use(bodyParser.urlencoded({extended:true}));
-app.use(cors());
+import express from "express";
+import db from "../config/db.js";
 
+const router = express.Router();
 
 //Admin
 
-app.post('/product/add', (req, res) => {
+router.post('/product/add', (req, res) => {
     const { product_name, description, category, quantity, best_before, image_url, store_id } = req.body;
 
     // Insert into Product table
@@ -35,7 +34,7 @@ app.post('/product/add', (req, res) => {
 
 //update products
 
-app.put('/product/update/:id', (req, res) => {
+router.put('/product/update/:id', (req, res) => {
     const productId = req.params.id;
     const { product_name, description, category, quantity, best_before } = req.body;
     const updateQuery = "UPDATE Product SET product_name = ?, description = ?, category = ?, quantity = ?, best_before = ? WHERE product_id = ?";
@@ -49,7 +48,7 @@ app.put('/product/update/:id', (req, res) => {
 });
 
 //List Products
-app.get('/products', (req, res) => {
+router.get('/products', (req, res) => {
     const selectQuery = "SELECT * FROM Product";
     db.query(selectQuery, (err, results) => {
         if (err) {
@@ -62,7 +61,7 @@ app.get('/products', (req, res) => {
 
 //Delete Product
 
-app.delete('/product/delete/:id', (req, res) => {
+router.delete('/product/delete/:id', (req, res) => {
     const productId = req.params.id;
     const deleteQuery = "DELETE FROM Product WHERE product_id = ?";
     db.query(deleteQuery, [productId], (err, result) => {
@@ -76,7 +75,7 @@ app.delete('/product/delete/:id', (req, res) => {
 
 //Add products to store
 
-app.post('/storeproduct/add', (req, res) => {
+router.post('/storeproduct/add', (req, res) => {
     const { product_id, store_id, price } = req.body;
     const insertQuery = "INSERT INTO StoreProducts (product_id, store_id, price) VALUES (?, ?, ?)";
     db.query(insertQuery, [product_id, store_id, price], (err, result) => {
@@ -90,7 +89,7 @@ app.post('/storeproduct/add', (req, res) => {
 
 //Update Product in Store
 
-app.put('/storeproduct/update/:id', (req, res) => {
+router.put('/storeproduct/update/:id', (req, res) => {
     const storeProductId = req.params.id;
     const { price } = req.body; // Assuming you might want to update the price
     const updateQuery = "UPDATE StoreProducts SET price = ? WHERE store_product_id = ?";
@@ -105,7 +104,7 @@ app.put('/storeproduct/update/:id', (req, res) => {
 
 //List Products in a Store
 
-app.get('/storeproducts/:store_id', (req, res) => {
+router.get('/storeproducts/:store_id', (req, res) => {
     const storeId = req.params.store_id;
     const selectQuery = "SELECT p.*, sp.price, sp.store_product_id FROM StoreProducts sp JOIN Product p ON sp.product_id = p.product_id WHERE sp.store_id = ?";
     db.query(selectQuery, [storeId], (err, results) => {
@@ -119,7 +118,7 @@ app.get('/storeproducts/:store_id', (req, res) => {
 
 //Delete Products from a Store
 
-app.delete('/storeproduct/delete/:id', (req, res) => {
+router.delete('/storeproduct/delete/:id', (req, res) => {
     const storeProductId = req.params.id;
     const deleteQuery = "DELETE FROM StoreProducts WHERE store_product_id = ?";
     db.query(deleteQuery, [storeProductId], (err, result) => {
@@ -132,34 +131,34 @@ app.delete('/storeproduct/delete/:id', (req, res) => {
 });
 
 //Managing Products
-app.get('/products', (req, res) => {
-    let { page, pageSize, category } = req.query;
-    page = page || 1;
-    pageSize = pageSize || 10;
-    let query = "SELECT * FROM Product";
-    let queryParams = [];
+// router.get('/products', (req, res) => {
+//     let { page, pageSize, category } = req.query;
+//     page = page || 1;
+//     pageSize = pageSize || 10;
+//     let query = "SELECT * FROM Product";
+//     let queryParams = [];
 
-    if (category) {
-        query += " WHERE category = ?";
-        queryParams.push(category);
-    }
+//     if (category) {
+//         query += " WHERE category = ?";
+//         queryParams.push(category);
+//     }
 
-    query += " LIMIT ? OFFSET ?";
-    const offset = (page - 1) * pageSize;
-    queryParams.push(parseInt(pageSize), offset);
+//     query += " LIMIT ? OFFSET ?";
+//     const offset = (page - 1) * pageSize;
+//     queryParams.push(parseInt(pageSize), offset);
 
-    db.query(query, queryParams, (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send("Failed to retrieve products");
-        }
-        res.json(results);
-    });
-});
+//     db.query(query, queryParams, (err, results) => {
+//         if (err) {
+//             console.error(err);
+//             return res.status(500).send("Failed to retrieve products");
+//         }
+//         res.json(results);
+//     });
+// });
 
 // View orders
 
-app.get('/orders', (req, res) => {
+router.get('/orders', (req, res) => {
     const { page, pageSize } = req.query;
     const limit = parseInt(pageSize) || 10;
     const offset = ((parseInt(page) || 1) - 1) * limit;
@@ -176,7 +175,7 @@ app.get('/orders', (req, res) => {
 
 // Edit customer details
 
-app.put('/customer/update/:id', (req, res) => {
+router.put('/customer/update/:id', (req, res) => {
     const customerId = req.params.id;
     const { name, email, address } = req.body;
     const query = "UPDATE userregistration SET name = ?, email = ?, address = ? WHERE user_id = ?";
@@ -190,7 +189,7 @@ app.put('/customer/update/:id', (req, res) => {
 });
 //Update Inventory 
 
-app.put('/inventory/update/:productId', (req, res) => {
+router.put('/inventory/update/:productId', (req, res) => {
     const productId = req.params.productId;
     const { stock } = req.body; // This is the new stock level
     const query = "UPDATE Product SET quantity = ? WHERE product_id = ?";
@@ -205,7 +204,7 @@ app.put('/inventory/update/:productId', (req, res) => {
 
 //Process Orders
 
-app.put('/orders/process/:id', (req, res) => {
+router.put('/orders/process/:id', (req, res) => {
     const orderId = req.params.id;
     const query = "UPDATE orders SET order_status = 'Processed' WHERE order_id = ?";
     db.query(query, [orderId], (err, result) => {
@@ -218,7 +217,7 @@ app.put('/orders/process/:id', (req, res) => {
 });
 
 // Get price from store products
-app.get('/product/price/:productId/:storeId', (req, res) => {
+router.get('/product/price/:productId/:storeId', (req, res) => {
     const { productId, storeId } = req.params;
   
     const query = `
@@ -241,3 +240,5 @@ app.get('/product/price/:productId/:storeId', (req, res) => {
       res.json(result[0]);
     });
   });
+
+  export default router;

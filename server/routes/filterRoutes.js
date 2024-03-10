@@ -1,9 +1,8 @@
-const app = express();
-app.use(express.json());
-app.use(bodyParser.urlencoded({extended:true}));
-app.use(cors());
+import express from 'express'
 
-app.get('/products/category/:category', (req, res) => {
+const router = express.Router();
+
+router.get('/products/category/:category', (req, res) => {
     const { category } = req.params;
     const selectQuery = "SELECT * FROM Product WHERE category = ?";
     db.query(selectQuery, [category], (err, results) => {
@@ -14,3 +13,5 @@ app.get('/products/category/:category', (req, res) => {
         res.json(results);
     });
 });
+
+export default router;

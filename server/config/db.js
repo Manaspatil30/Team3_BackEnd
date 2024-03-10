@@ -1,4 +1,5 @@
-const mysql = require('mysql')
+// const mysql = require('mysql')
+import mysql from 'mysql'
 const db = mysql.createPool({
     host: 'localhost',
     user: "root",
@@ -6,4 +7,4 @@ const db = mysql.createPool({
     database: "unikartdatabase"
 })
 
-module.exports=db;
+export default db;

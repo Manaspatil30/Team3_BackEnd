@@ -1,9 +1,8 @@
-const app = express();
-app.use(express.json());
-app.use(bodyParser.urlencoded({extended:true}));
-app.use(cors());
+import express from "express";
 
-app.get('/products/search', (req, res) => {
+const router = express.Router();
+
+router.get('/products/search', (req, res) => {
     const { search } = req.query; 
     const searchQuery = "SELECT * FROM Product WHERE product_name LIKE ?";
     db.query(searchQuery, [`%${search}%`], (err, results) => {
@@ -14,3 +13,5 @@ app.get('/products/search', (req, res) => {
         res.json(results);
     });
 });
+
+export default router;

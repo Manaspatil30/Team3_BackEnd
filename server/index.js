@@ -1,11 +1,11 @@
-const express = require('express')
-const bodyParser = require('body-parser')
-const cors = require('cors')
-const bcrypt =require('bcrypt')
-const jwt = require('jsonwebtoken')
-const imageRoutes = require('./routes/imageRoutes'); // Import image routes module
-const adminRoutes = require('./routes/adminRoutes');
-const db=require( './config/db');
+import express from 'express'
+import bodyParser from 'body-parser'
+import cors from 'cors'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import db from './config/db.js'
+import crypto from 'crypto'
+import productRoutes from './routes/productsRoutes.js'
 
 const app = express();
 app.use(express.json());
@@ -13,10 +13,10 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
 
 // Use image routes
-app.use('/admin/images', imageRoutes);
+// app.use('/admin/images', imageRoutes);
 //admin registration routes
-app.use('/admin', adminRoutes);
-
+// app.use('/admin', adminRoutes);
+app.use('/', productRoutes)
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
@@ -108,7 +108,6 @@ app.post('/signup', async (req, res) => {
 
 // Sign In Route
 
-const crypto = require('crypto');
 
 const secretKey = crypto.randomBytes(32).toString('hex');
 
@@ -139,22 +138,22 @@ app.post('/signin', async (req, res) => {
 });
 
 // Protected Route Example
-app.get('/protected', authenticateToken, (req, res) => {
-    res.json({ message: 'Protected Route Accessed Successfully' });
-});
+// app.get('/protected', authenticateToken, (req, res) => {
+//     res.json({ message: 'Protected Route Accessed Successfully' });
+// });
 
 
 
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (token == null) return res.status(401).json({ error: 'Authentication failed. Token not provided.' });
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Authentication failed. Invalid token.' });
-        req.user = user;
-        next();
-    });
-}
+// function authenticateToken(req, res, next) {
+//     const authHeader = req.headers['authorization'];
+//     const token = authHeader && authHeader.split(' ')[1];
+//     if (token == null) return res.status(401).json({ error: 'Authentication failed. Token not provided.' });
+//     jwt.verify(token, secretKey, (err, user) => {
+//         if (err) return res.status(403).json({ error: 'Authentication failed. Invalid token.' });
+//         req.user = user;
+//         next();
+//     });
+// }
 
 
 // Endpoint to generate a client token for the Braintree client
@@ -586,3 +585,5 @@ app.get('/api/product/:product_id/reviews', (req, res) => {
         res.status(200).json({ reviews });
     });
 });
+
+export default app;
