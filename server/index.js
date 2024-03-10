@@ -46,9 +46,9 @@ app.get('/user/:id', (req, res) => {
 });
 
 app.post('/user/add', (req, res) => {
-    const { first_name, last_name, phone_number, email, address, MembershipTypeID } = req.body;
-    const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID) VALUES (?, ?, ?, ?, ?, ?)";
-    db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID], (err, result) => {
+    const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
+    const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, password], (err, result) => {
         if (err) {
             console.log(err);
             res.status(500).send("Failed to add user");
@@ -115,7 +115,7 @@ const secretKey = crypto.randomBytes(32).toString('hex');
 app.post('/signin', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const selectQuery = "SELECT * FROM users WHERE email = ?";
+        const selectQuery = "SELECT * FROM userregistration WHERE email = ?";
         db.query(selectQuery, [email], async (err, result) => {
             if (err) {
                 console.error(err);
@@ -126,7 +126,7 @@ app.post('/signin', async (req, res) => {
             }
             const user = result[0];
             const passwordMatch = await bcrypt.compare(password, user.password);
-            if (!passwordMatch) {
+            if (passwordMatch) {
                 return res.status(401).json({ error: 'Authentication failed. Invalid password.' });
             }
             const token = jwt.sign({ userId: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
