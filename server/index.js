@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken'
 import db from './config/db.js'
 import crypto from 'crypto'
 import productRoutes from './routes/productsRoutes.js'
+import authentication from './routes/authentication.js'
 
 const app = express();
 app.use(express.json());
@@ -17,6 +18,7 @@ app.use(cors());
 //admin registration routes
 // app.use('/admin', adminRoutes);
 app.use('/', productRoutes)
+app.use('/', authentication)
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
@@ -83,58 +85,6 @@ app.delete('/user/delete/:id', (req, res) => {
             res.status(200).send("User deleted successfully");
         }
     });
-});
-
-/* Sign up and sign in*/
-
-// Sign Up Route
-app.post('/signup', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const insertQuery = "INSERT INTO users (email, password) VALUES (?, ?)";
-        db.query(insertQuery, [email, hashedPassword], (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-            res.status(201).json({ message: 'User registered successfully' });
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-// Sign In Route
-
-
-const secretKey = crypto.randomBytes(32).toString('hex');
-
-app.post('/signin', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const selectQuery = "SELECT * FROM userregistration WHERE email = ?";
-        db.query(selectQuery, [email], async (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-            if (result.length === 0) {
-                return res.status(401).json({ error: 'Authentication failed. User not found.' });
-            }
-            const user = result[0];
-            const passwordMatch = await bcrypt.compare(password, user.password);
-            if (passwordMatch) {
-                return res.status(401).json({ error: 'Authentication failed. Invalid password.' });
-            }
-            const token = jwt.sign({ userId: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
-            res.status(200).json({ token: token });
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
 });
 
 // Protected Route Example
