@@ -340,7 +340,9 @@ CREATE TABLE `product_reviews` (
   FOREIGN KEY (`user_id`) REFERENCES `userregistration`(`user_id`)
 );
 
-ALTER TABLE product ADD COLUMN image_url VARCHAR(255);
+ALTER TABLE product ADD COLUMN image_url_tesco VARCHAR(255);
+ALTER TABLE product ADD COLUMN image_url_aldi VARCHAR(255);
+ALTER TABLE product ADD COLUMN image_url_lidl VARCHAR(255);
 
 CREATE TABLE `admins` (
   `admin_id` int(11) NOT NULL AUTO_INCREMENT,
