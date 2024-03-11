@@ -8,6 +8,7 @@ import crypto from 'crypto'
 import productRoutes from './routes/productsRoutes.js'
 import authentication from './routes/authentication.js'
 import baskets from './routes/baskets.js'
+import filterRoutes from './routes/filterRoutes.js'
 
 const app = express();
 app.use(express.json());
@@ -21,6 +22,7 @@ app.use(cors());
 app.use('/', productRoutes)
 app.use('/', authentication)
 app.use('/', baskets)
+app.use('/', filterRoutes)
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
@@ -391,36 +393,6 @@ app.post('/checkout', async (req, res) => {
         res.status(500).send('Failed to process payment');
     }
 });
-
-// route to filter products lowest to highest 
-app.get('/products/lowest-to-highest', async (req, res) => {
-    try {
-      // Query the database to get products sorted by price
-      const query = 'SELECT * FROM product ORDER BY price ASC';
-      const result = await pool.query(query);
-  
-      // Send the sorted products as a response
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
-
-  // Route to get products sorted by price from highest to lowest
-app.get('/products/highest-to-lowest', async (req, res) => {
-    try {
-      // Query the database to get products sorted by price in descending order
-      const query = 'SELECT * FROM product ORDER BY price DESC';
-      const result = await pool.query(query);
-  
-      // Send the sorted products as a response
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
   
   
 
