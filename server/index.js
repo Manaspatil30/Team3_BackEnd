@@ -7,6 +7,7 @@ import db from './config/db.js'
 import crypto from 'crypto'
 import productRoutes from './routes/productsRoutes.js'
 import authentication from './routes/authentication.js'
+import baskets from './routes/baskets.js'
 
 const app = express();
 app.use(express.json());
@@ -19,6 +20,7 @@ app.use(cors());
 // app.use('/admin', adminRoutes);
 app.use('/', productRoutes)
 app.use('/', authentication)
+app.use('/', baskets)
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
@@ -142,53 +144,6 @@ app.post('/checkout', async (req, res) => {
         res.status(500).send('Failed to process payment');
     }
 });
-
-//Get Basket
-app.get('/basket/:user_id', (req, res) => {
-    const userId = req.params.user_id;
-  
-    db.query(
-      'SELECT basketitems.basket_id, product.product_name, product.description, product.product_id, basketitems.price, basketitems.quantity FROM basketitems JOIN product ON basketitems.product_id = product.product_id WHERE basketitems.user_id = ?',
-      [userId],
-      (error, results) => {
-        if (error) throw error;
-        res.json(results);
-      }
-    );
-  });
-
-// Post Basket
-  app.post('/basket/:user_id', (req, res) => {
-    const { product_id, price, quantity } = req.body;
-    const userId = req.params.user_id;
-  
-    if (!product_id || !price || !quantity || !userId) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-  
-    db.query(
-      'INSERT INTO basketitems (user_id, product_id, price, quantity) VALUES (?, ?, ?, ?)',
-      [userId, product_id, price, quantity],
-      (error, results) => {
-        if (error) throw error;
-        res.json({ basket_id: results.insertId, ...req.body });
-      }
-    );
-  });
-
-  // Delete from basket
-  app.delete('/basket/:product_id', (req, res) => {
-    const productId = req.params.product_id;
-  
-    db.query(
-      'DELETE FROM basketitems WHERE product_id = ?',
-      [productId],
-      (error, results) => {
-        if (error) throw error;
-        res.json({ message: 'Item removed from basket successfully' });
-      }
-    );
-  });
 
 // Route to place a new order
 app.post('/orders/place', (req, res) => {
