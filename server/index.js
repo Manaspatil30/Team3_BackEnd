@@ -9,6 +9,7 @@ import productRoutes from './routes/productsRoutes.js'
 import authentication from './routes/authentication.js'
 import baskets from './routes/baskets.js'
 import filterRoutes from './routes/filterRoutes.js'
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());
@@ -28,12 +29,12 @@ app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
 })
 
-const db = mysql.createPool({
-    host: 'localhost',
-    user: "root",
-    password: "",
-    database: "unikartdatabase"
-})
+// const db = mysql.createPool({
+//     host: 'localhost',
+//     user: "root",
+//     password: "",
+//     database: "unikartdatabase"
+// })
 
 app.get('/',(req,res)=>{
     const selectQuery = "SELECT * from userregistration"
@@ -467,5 +468,5 @@ app.get('/api/product/:product_id/reviews', (req, res) => {
         res.status(200).json({ reviews });
     });
 });
-
+app.use(cors());
 export default app;
