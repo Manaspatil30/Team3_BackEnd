@@ -3,17 +3,35 @@ import db from '../config/db.js'
 
 const router = express.Router();
 
-router.get('/products/category/:category', (req, res) => {
-    const { category } = req.params;
-    const selectQuery = "SELECT * FROM Product WHERE category = ?";
-    db.query(selectQuery, [category], (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send("Failed to filter products by category");
-        }
-        res.json(results);
-    });
+router.get('/products/category', (req, res) => {
+  const categories = req.query.categories;
+
+  if (!categories) {
+    return res.status(400).json({ error: 'Invalid or missing category' });
+  }
+
+  const categoriesArray = categories.split(',').map(category => category.trim());
+
+  if (categoriesArray.length === 0) {
+    return res.status(400).json({ error: 'Invalid or missing category parameters' });
+  }
+
+  const placeholders = categoriesArray.map(() => '?').join(',');
+  const selectQuery = `SELECT * FROM Product WHERE category IN (${placeholders})`;
+
+  db.query(selectQuery, categoriesArray, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Failed to filter products by category');
+    }
+    res.json(results);
+  });
 });
+
+
+
+
+
 
 
 
