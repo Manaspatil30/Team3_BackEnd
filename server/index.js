@@ -9,7 +9,6 @@ import productRoutes from './routes/productsRoutes.js'
 import authentication from './routes/authentication.js'
 import baskets from './routes/baskets.js'
 import filterRoutes from './routes/filterRoutes.js'
-const cors = require('cors');
 
 const app = express();
 app.use(express.json());
