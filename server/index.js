@@ -28,7 +28,12 @@ app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
 })
 
-
+const db = mysql.createPool({
+    host: 'localhost',
+    user: "root",
+    password: "",
+    database: "unikartdatabase"
+})
 
 app.get('/',(req,res)=>{
     const selectQuery = "SELECT * from userregistration"
@@ -189,7 +194,7 @@ app.post('/orders/place', (req, res) => {
                 }
             });
         }
-    });
+    })
     
     // Route to get all store addresses
 app.get('/api/storeAddress', (req, res) => {
