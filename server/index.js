@@ -31,7 +31,12 @@ app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
 })
 
-
+// const db = mysql.createPool({
+//     host: 'localhost',
+//     user: "root",
+//     password: "",
+//     database: "unikartdatabase"
+// })
 
 app.get('/',(req,res)=>{
     const selectQuery = "SELECT * from userregistration"
@@ -192,7 +197,7 @@ app.post('/orders/place', (req, res) => {
                 }
             });
         }
-    });
+    })
     
     // Route to get all store addresses
 app.get('/api/storeAddress', (req, res) => {
@@ -265,6 +270,32 @@ router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
     });
 });
 });
+
+// router to allow users to choose the price range 
+app.get('/products/price-range', (req, res) => {
+    const minPrice = parseFloat(req.query.min);
+    const maxPrice = parseFloat(req.query.max);
+  
+    if (isNaN(minPrice) || isNaN(maxPrice)) {
+      return res.status(400).json({ error: 'Invalid price range' });
+    }
+  
+    const selectQuery = `
+      SELECT *
+      FROM storeproducts sp
+      JOIN product p ON sp.product_id = p.product_id
+      WHERE sp.price BETWEEN ? AND ?
+    `;
+  
+    db.query(selectQuery, [minPrice, maxPrice], (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Failed to fetch products by price range');
+      }
+  
+      res.json(results);
+    });
+  });
 
 
 
@@ -465,5 +496,5 @@ app.get('/api/product/:product_id/reviews', (req, res) => {
         res.status(200).json({ reviews });
     });
 });
-
+app.use(cors());
 export default app;
