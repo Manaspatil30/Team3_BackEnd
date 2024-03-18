@@ -7,7 +7,6 @@ import db from './config/db.js'
 import authentication from './routes/authentication.js'
 import baskets from './routes/baskets.js'
 import filterRoutes from './routes/filterRoutes.js'
-import imageRoutes from './routes/imageRoutes.js'
 import productRoutes from './routes/productsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
 
@@ -24,7 +23,6 @@ app.use('/', productRoutes)
 app.use('/', authentication)
 app.use('/', baskets)
 app.use('/', filterRoutes)
-app.use('/', imageRoutes);
 app.use('/', searchRoutes)
 
 app.listen(3001, (req, res)=>{
