@@ -5,25 +5,18 @@ import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import db from '../config/db.js'; // Assuming you have a db.js file for database connection
     const router = express.Router();
 
-    // Configure Cloudinary
-    cloudinary.config({
-    cloud_name: 'dhtw6erpk',
-    api_key: '116233414617767',
-    api_secret: 'QGxpcw5tvz3s3ZdoBlWA89qgtus',
-    });
+// Cloudinary configuration
+cloudinary.config({
+  cloud_name: 'dhtw6erpk',
+  api_key: '116233414617767',
+  api_secret: 'QGxpcw5tvz3s3ZdoBlWA89qgtus',
+  secure: true,
+});
 
-    // Configure Multer storage with Cloudinary
-    const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: './', // Specify the folder name in Cloudinary where images will be uploaded
-        format: async (req, file) => 'png', // Specify the format of the uploaded images
-        public_id: (req, file) => file.originalname, // Use the original file name as the public ID
-    },
-    });
-
-    // Initialize Multer with the configured storage
-    const uploadMiddleware = multer({ storage: storage });
+const express = require('express');
+//const router = express.Router();
+const cloudinary = require('cloudinary').v2; // Assuming you've installed and configured Cloudinary
+const db = require('../config/db'); // Assuming you've configured your database connection
 
     // Route for uploading a single image
     // 
