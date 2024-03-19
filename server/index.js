@@ -1,14 +1,15 @@
-import express from 'express'
+import bcrypt from 'bcrypt'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import bcrypt from 'bcrypt'
+import express from 'express'
 import jwt from 'jsonwebtoken'
 import db from './config/db.js'
-import crypto from 'crypto'
-import productRoutes from './routes/productsRoutes.js'
 import authentication from './routes/authentication.js'
 import baskets from './routes/baskets.js'
 import filterRoutes from './routes/filterRoutes.js'
+import imageRoutes from './routes/imageRoutes.js'
+import productRoutes from './routes/productsRoutes.js'
+import searchRoutes from './routes/searchRoutes.js'
 
 const app = express();
 app.use(express.json());
@@ -23,6 +24,8 @@ app.use('/', productRoutes)
 app.use('/', authentication)
 app.use('/', baskets)
 app.use('/', filterRoutes)
+app.use('/', imageRoutes);
+app.use('/', searchRoutes)
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
