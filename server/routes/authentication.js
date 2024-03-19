@@ -1,11 +1,71 @@
-import express from 'express'
-import crypto from 'crypto'
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import express from 'express';
+import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 
 const router = express.Router();
 
+router.get('/',(req,res)=>{
+    const selectQuery = "SELECT * from userregistration"
+    db.query(selectQuery,(err, result)=>{
+        if(err) {console.log(err)};
+        res.send(result)
+    })
+})
+
+router.get('/user/:id', (req, res) => {
+    const userId = 1;
+    const selectQuery = "SELECT * FROM userregistration WHERE user_id = ?";
+    db.query(selectQuery, [userId], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Internal Server Error");
+        } else {
+            res.send(result);
+        }
+    });
+});
+
+router.post('/user/add', (req, res) => {
+    const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
+    const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, password], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Failed to add user");
+        } else {
+            res.status(201).send("User added successfully");
+        }
+    });
+});
+
+router.put('/user/update/:id', (req, res) => {
+    const userId = req.params.id;
+    const { first_name, last_name, phone_number, email, address, membership, start_date, end_date } = req.body;
+    const updateQuery = "UPDATE userregistration SET first_name=?, last_name=?, phone_number=?, email=?, address=?, membership=?, start_date=?, end_date=? WHERE user_id=?";
+    db.query(updateQuery, [first_name, last_name, phone_number, email, address, membership, start_date, end_date, userId], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Failed to update user information");
+        } else {
+            res.status(200).send("User information updated successfully");
+        }
+    });
+});
+
+router.delete('/user/delete/:id', (req, res) => {
+    const userId = req.params.id;
+    const deleteQuery = "DELETE FROM userregistration WHERE user_id=?";
+    db.query(deleteQuery, [userId], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Failed to delete user");
+        } else {
+            res.status(200).send("User deleted successfully");
+        }
+    });
+});
 /* Sign up and sign in*/
 
 // Sign Up Route

@@ -31,73 +31,9 @@ app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
 })
 
-// const db = mysql.createPool({
-//     host: 'localhost',
-//     user: "root",
-//     password: "",
-//     database: "unikartdatabase"
-// })
 
-app.get('/',(req,res)=>{
-    const selectQuery = "SELECT * from userregistration"
-    db.query(selectQuery,(err, result)=>{
-        if(err) {console.log(err)};
-        res.send(result)
-    })
-})
 
-app.get('/user/:id', (req, res) => {
-    const userId = 1;
-    const selectQuery = "SELECT * FROM userregistration WHERE user_id = ?";
-    db.query(selectQuery, [userId], (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Internal Server Error");
-        } else {
-            res.send(result);
-        }
-    });
-});
 
-app.post('/user/add', (req, res) => {
-    const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
-    const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, password], (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Failed to add user");
-        } else {
-            res.status(201).send("User added successfully");
-        }
-    });
-});
-
-app.put('/user/update/:id', (req, res) => {
-    const userId = req.params.id;
-    const { first_name, last_name, phone_number, email, address, membership, start_date, end_date } = req.body;
-    const updateQuery = "UPDATE userregistration SET first_name=?, last_name=?, phone_number=?, email=?, address=?, membership=?, start_date=?, end_date=? WHERE user_id=?";
-    db.query(updateQuery, [first_name, last_name, phone_number, email, address, membership, start_date, end_date, userId], (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Failed to update user information");
-        } else {
-            res.status(200).send("User information updated successfully");
-        }
-    });
-});
-
-app.delete('/user/delete/:id', (req, res) => {
-    const userId = req.params.id;
-    const deleteQuery = "DELETE FROM userregistration WHERE user_id=?";
-    db.query(deleteQuery, [userId], (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Failed to delete user");
-        } else {
-            res.status(200).send("User deleted successfully");
-        }
-    });
-});
 
 // Protected Route Example
 // app.get('/protected', authenticateToken, (req, res) => {
@@ -270,32 +206,6 @@ router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
     });
 });
 });
-
-// router to allow users to choose the price range 
-app.get('/products/price-range', (req, res) => {
-    const minPrice = parseFloat(req.query.min);
-    const maxPrice = parseFloat(req.query.max);
-  
-    if (isNaN(minPrice) || isNaN(maxPrice)) {
-      return res.status(400).json({ error: 'Invalid price range' });
-    }
-  
-    const selectQuery = `
-      SELECT *
-      FROM storeproducts sp
-      JOIN product p ON sp.product_id = p.product_id
-      WHERE sp.price BETWEEN ? AND ?
-    `;
-  
-    db.query(selectQuery, [minPrice, maxPrice], (err, results) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Failed to fetch products by price range');
-      }
-  
-      res.json(results);
-    });
-  });
 
 
 
@@ -496,5 +406,5 @@ app.get('/api/product/:product_id/reviews', (req, res) => {
         res.status(200).json({ reviews });
     });
 });
-app.use(cors());
+
 export default app;
