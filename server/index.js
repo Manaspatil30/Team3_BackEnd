@@ -345,29 +345,69 @@ app.get('/product/:product_id/reviews', (req, res) => {
     });
 });
 
-// Route to get prices of a specific product from all stores
-app.get('/productPrices/:productId', (req, res) => {
-    const productId = req.params.productId;
+app.get('/productDetails/:productId', (req, res) => {
+    const productId = parseInt(req.params.productId, 10);
+    if (isNaN(productId)) {
+        return res.status(400).json({ error: 'Invalid product ID' });
+    }
+
+    console.log("Received productId:", productId); // Debugging statement
+
     const selectQuery = `
-        SELECT 
-            s.store_name,
-            sp.price
-        FROM 
-            stores s
-        INNER JOIN 
-            storeproducts sp ON s.store_id = sp.store_id
-        WHERE 
-            sp.product_id = ?;
+        SELECT
+            p.product_id, p.product_name, p.description, p.category, p.quantity,
+            sp.price, s.store_name
+        FROM
+            product p
+        INNER JOIN storeproducts sp ON p.product_id = sp.product_id
+        INNER JOIN stores s ON sp.store_id = s.store_id
+        WHERE
+            p.product_id = ?
+        GROUP BY
+            p.product_id, s.store_name
     `;
-    
+
     db.query(selectQuery, [productId], (err, results) => {
         if (err) {
             console.log(err);
             res.status(500).json({ error: 'Internal Server Error' });
         } else {
-            res.json(results);
+            const productDetails = {};
+
+            results.forEach(row => {
+                const { product_id, product_name, description, category, quantity, price, store_name } = row;
+
+                if (!productDetails[product_id]) {
+                    productDetails[product_id] = {
+                        product_id,
+                        product_name,
+                        description,
+                        category,
+                        quantity,
+                        stores: []
+                    };
+                }
+
+                productDetails[product_id].stores.push({
+                    store_name,
+                    price
+                });
+            });
+
+            console.log(productDetails); // Debugging statement
+            res.json(productDetails);
         }
     });
 });
+
+    // db.query(selectQuery, [productId], (err, results) => {
+    //     if (err) {
+    //         console.log(err);
+    //         res.status(500).json({ error: 'Internal Server Error' });
+    //     } else {
+    //         console.log("Query results:", results); // Debugging statement
+    //         res.json(results);
+    //     }
+    // });
 
 export default app;

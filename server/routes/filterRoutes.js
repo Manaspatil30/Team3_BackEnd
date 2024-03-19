@@ -3,8 +3,8 @@ import db from '../config/db.js';
 
 const router = express.Router();
 
-router.get('/products/category', (req, res) => {
-  const categories = req.query.categories;
+router.get('/products/category/:categories', (req, res) => {
+  const categories = req.params.categories;
 
   if (!categories) {
     return res.status(400).json({ error: 'Invalid or missing category' });
