@@ -59,7 +59,7 @@ router.post('/user/add', async (req, res) => {
         // Hash the password using the salt
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, ?, ?,'U')";
         db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword], (err, result) => {
             if (err) {
                 console.log(err);
@@ -166,7 +166,7 @@ router.post('/user/signin', (req, res) => {
         }
   
         const token = jwt.sign({ userId: user.user_id, email: user.email }, secretKey, { expiresIn: '1h' });
-        res.status(200).json({ token: token, userId : user.user_id, fName : user.first_name, lName : user.last_name,});
+        res.status(200).json({ token: token, userId : user.user_id, fName : user.first_name, lName : user.last_name,status:user.status});
         //res.status(200).send('Sign-in successful');
       });
     } catch (error) {
