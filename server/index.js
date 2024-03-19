@@ -272,73 +272,25 @@ app.post('/signup', async (req, res) => {
 //     }
 // });
 
-// Protected Route Example
-app.get('/protected', authenticateToken, (req, res) => {
-    res.json({ message: 'Protected Route Accessed Successfully' });
+app.post('/process-payment', (req, res) => {
+    // This function simulates processing a payment.
+    // In a real system, you would perform validation and interact with a payment gateway.
+    // Here, we'll just return a dummy response.
+    const { amount, cardNumber, expiryDate, cvv } = req.body;
+    console.log('Processing payment...');
+    console.log('Amount:', amount);
+    console.log('Card Number:', cardNumber);
+    console.log('Expiry Date:', expiryDate);
+    console.log('CVV:', cvv);
+    
+    // Simulate a successful payment
+    const paymentResult = {
+        success: true,
+        message: 'Dummy payment: Payment processed successfully.'
+    };
+    
+    res.json(paymentResult);
 });
-
-
-
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (token == null) return res.status(401).json({ error: 'Authentication failed. Token not provided.' });
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Authentication failed. Invalid token.' });
-        req.user = user;
-        next();
-    });
-}
-
-
-/*Payment  gateway integration*/
-
-
-// const gateway = new braintree.BraintreeGateway({
-//     environment: braintree.Environment.Sandbox,
-//     merchantId: 'rppzqr3dvsk2xbst',
-//     publicKey: 'xd9v7ggwgj862p6n',
-//     privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
-// });
-
-// Endpoint to generate a client token for the Braintree client
-app.get('/client_token', async (req, res) => {
-    try {
-        const response = await gateway.clientToken.generate({});
-        res.send(response.clientToken);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to generate client token');
-    }
-});
-
-// Endpoint to process a payment
-app.post('/checkout', async (req, res) => {
-    const { amount, payment_method_nonce } = req.body;
-
-    try {
-        const saleRequest = {
-            amount: amount,
-            paymentMethodNonce: payment_method_nonce,
-            options: {
-                submitForSettlement: true
-            }
-        };
-
-        const result = await gateway.transaction.sale(saleRequest);
-
-        if (result.success || result.transaction) {
-            res.status(200).send("Payment successful");
-        } else {
-            res.status(400).send("Payment failed");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to process payment');
-    }
-});
-  
-  
 
 /* Rating and review route*/
 
