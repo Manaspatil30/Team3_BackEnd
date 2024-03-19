@@ -207,18 +207,6 @@ router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
 });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* Sign up and sign in*/
 
 // Sign Up Route
@@ -272,10 +260,8 @@ app.post('/signup', async (req, res) => {
 //     }
 // });
 
+// Query to process payment
 app.post('/process-payment', (req, res) => {
-    // This function simulates processing a payment.
-    // In a real system, you would perform validation and interact with a payment gateway.
-    // Here, we'll just return a dummy response.
     const { amount, cardNumber, expiryDate, cvv } = req.body;
     console.log('Processing payment...');
     console.log('Amount:', amount);
@@ -295,7 +281,7 @@ app.post('/process-payment', (req, res) => {
 /* Rating and review route*/
 
 // Define routes for product ratings and reviews
-app.post('/api/product/:product_id/rate', (req, res) => {
+app.post('/product/:product_id/rate', (req, res) => {
     const productId = req.params.product_id;
     const { user_id, rating } = req.body;
 
@@ -311,7 +297,7 @@ app.post('/api/product/:product_id/rate', (req, res) => {
     });
 });
 
-app.get('/api/product/:product_id/ratings', (req, res) => {
+app.get('/product/:product_id/ratings', (req, res) => {
     const productId = req.params.product_id;
 
     // Retrieve ratings for the product from the database
@@ -327,7 +313,7 @@ app.get('/api/product/:product_id/ratings', (req, res) => {
     });
 });
 
-app.post('/api/product/:product_id/review', (req, res) => {
+app.post('/product/:product_id/review', (req, res) => {
     const productId = req.params.product_id;
     const { user_id, review } = req.body;
 
@@ -343,7 +329,7 @@ app.post('/api/product/:product_id/review', (req, res) => {
     });
 });
 
-app.get('/api/product/:product_id/reviews', (req, res) => {
+app.get('/product/:product_id/reviews', (req, res) => {
     const productId = req.params.product_id;
 
     // Retrieve reviews for the product from the database
@@ -356,6 +342,31 @@ app.get('/api/product/:product_id/reviews', (req, res) => {
         }
         const reviews = results.map((result) => result.review);
         res.status(200).json({ reviews });
+    });
+});
+
+// Route to get prices of a specific product from all stores
+app.get('/productPrices/:productId', (req, res) => {
+    const productId = req.params.productId;
+    const selectQuery = `
+        SELECT 
+            s.store_name,
+            sp.price
+        FROM 
+            stores s
+        INNER JOIN 
+            storeproducts sp ON s.store_id = sp.store_id
+        WHERE 
+            sp.product_id = ?;
+    `;
+    
+    db.query(selectQuery, [productId], (err, results) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            res.json(results);
+        }
     });
 });
 
