@@ -28,11 +28,11 @@ cloudinary.config({
         if (!req.file) {
           return res.status(400).json({ error: 'No image uploaded' });
         }
-      
+    
         const store = req.body.store;
         const imageUrl = req.file.path;
         const productId = req.body.productId;
-      
+    
         let columnName;
         switch (store) {
           case 'Tesco':
@@ -47,14 +47,15 @@ cloudinary.config({
           default:
             return res.status(400).json({ error: 'Invalid store name' });
         }
-      
+    
         const updateQuery = `UPDATE product SET ${columnName} = ? WHERE product_id = ?`;
         db.query(updateQuery, [imageUrl, productId], (err, result) => {
           if (err) {
             console.error('Error updating product image URL: ', err);
             return res.status(500).json({ error: 'Error updating product image URL' });
           }
-          res.status(200).json({ message: 'Image URL updated successfully' });
+          // Send the response here
+          return res.status(200).json({ message: 'Image URL updated successfully' });
         });
       });
     // Route for uploading a single image
@@ -108,39 +109,38 @@ cloudinary.config({
     // });
     router.post('/upload-multiple', uploadMiddleware.array('images', 10), (req, res) => {
         if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ error: 'No images uploaded' });
+          return res.status(400).json({ error: 'No images uploaded' });
         }
     
-        const { store } = req.body; // Assuming you'll send the store name in the request body
-        const productId = req.body.productId; // Assuming you'll send the product ID in the request body
+        const { store } = req.body;
+        const productId = req.body.productId;
     
-        // Determine the column name based on the store name
         let columnName;
         switch (store) {
-        case 'Tesco':
+          case 'Tesco':
             columnName = 'image_url_tesco';
             break;
-        case 'Aldi':
+          case 'Aldi':
             columnName = 'image_url_aldi';
             break;
-        case 'Lidl':
+          case 'Lidl':
             columnName = 'image_url_lidl';
             break;
-        default:
+          default:
             return res.status(400).json({ error: 'Invalid store name' });
         }
     
         const imageUrls = req.files.map((file) => file.path);
     
-        // Update the product table with the image URLs
         const updateQuery = `UPDATE product SET ${columnName} = ? WHERE product_id = ?`;
         db.query(updateQuery, [imageUrls.join(','), productId], (err, result) => {
-        if (err) {
+          if (err) {
             console.error('Error updating product image URLs: ', err);
             return res.status(500).json({ error: 'Error updating product image URLs' });
-        }
-        res.status(200).json({ message: 'Image URLs updated successfully' });
+          }
+          // Send the response here
+          return res.status(200).json({ message: 'Image URLs updated successfully' });
         });
-    });
+      });
 
     export default router;

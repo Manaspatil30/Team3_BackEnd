@@ -7,7 +7,7 @@ import db from '../config/db.js';
 const router = express.Router();
 
 const authMiddleware = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1]; // Extract the token from the 'Authorization' header
+    const token = req.headers.authorization?.[0]; // Extract the token from the 'Authorization' header
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -75,7 +75,7 @@ router.post('/user/add', async (req, res) => {
 });
 
 
-router.put('/user/update/:id', async (req, res) => {
+router.put('/user/update/:id', authMiddleware,async (req, res) => {
     const userId = req.params.id;
   const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
 
@@ -113,7 +113,7 @@ router.put('/user/update/:id', async (req, res) => {
         res.status(500).send("Failed to update user information");
     }
 });
-router.delete('/user/delete/:id', (req, res) => {
+router.delete('/user/delete/:id',authMiddleware, (req, res) => {
     const userId = req.params.id;
   const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
 
@@ -176,7 +176,7 @@ router.post('/user/signin', (req, res) => {
   });
 
 
-  router.put('/user/change-password/:id', async (req, res) => {
+  router.put('/user/change-password/:id',authMiddleware, async (req, res) => {
     const userId = req.params.id;
   const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
 
