@@ -124,4 +124,33 @@ router.post('/products/rate', (req, res) => {
   });
 });
 
+// Route to filter products by selected stores
+router.get('/products/filterStores', (req, res) => {
+  const selectedStores = req.query.stores ? req.query.stores.split(',') : [];
+
+  // Check if any store is selected
+  if (selectedStores.length === 0) {
+    return res.status(400).json({ error: 'Please select at least one store' });
+  }
+
+  // Create placeholders for each store name
+  const placeholders = selectedStores.map(() => '?').join(',');
+  const selectQuery = `
+    SELECT p.product_id, p.product_name, p.description, p.category, p.quantity, sp.price, s.store_name
+    FROM product p
+    INNER JOIN storeproducts sp ON p.product_id = sp.product_id
+    INNER JOIN stores s ON sp.store_id = s.store_id
+    WHERE s.store_name IN (${placeholders})
+  `;
+
+  db.query(selectQuery, selectedStores, (err, results) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
 export default router;
