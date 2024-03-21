@@ -5,9 +5,10 @@ import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
 
 const router = express.Router();
+const secretKey = crypto.randomBytes(32).toString('hex');
 
 const authMiddleware = (req, res, next) => {
-    const token = req.headers.authorization?.[0]; // Extract the token from the 'Authorization' header
+    const token = req.headers.authorization; // Extract the token from the 'Authorization' header
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -32,8 +33,10 @@ router.get('/',(req,res)=>{
 
 router.get('/user/:id', authMiddleware,(req, res) => {
     const userId = req.params.id;
-    const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
-    if (userId !== tokenUserId) {
+   const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
+    console.log(tokenUserId)
+    console.log(userId)
+    if (userId != tokenUserId) {
         return res.status(403).json({ error: 'You are not authorized to update this user' });
       }
     
@@ -50,23 +53,63 @@ router.get('/user/:id', authMiddleware,(req, res) => {
 
 
 
+// router.post('/user/add', async (req, res) => {
+//     const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
+    
+//     try {
+//         // Generate a salt to use for hashing
+//         const salt = await bcrypt.genSalt(10);
+//         // Hash the password using the salt
+//         const hashedPassword = await bcrypt.hash(password, salt);
+
+//         const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, ?, ?,'C')";
+//         db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword], (err, result) => {
+//             if (err) {
+//                 console.log(err);
+//                 res.status(500).send("Failed to add user");
+//             } else {
+//                 res.status(201).send("User added successfully");
+//             }
+//         });
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).send("Failed to add user");
+//     }
+// });
 router.post('/user/add', async (req, res) => {
     const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
     
     try {
-        // Generate a salt to use for hashing
-        const salt = await bcrypt.genSalt(10);
-        // Hash the password using the salt
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, ?, ?,'U')";
-        db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword], (err, result) => {
+        // Check if the email already exists
+        const emailExistsQuery = "SELECT COUNT(*) AS count FROM userregistration WHERE email = ?";
+        db.query(emailExistsQuery, [email], async (err, result) => {
             if (err) {
                 console.log(err);
-                res.status(500).send("Failed to add user");
-            } else {
-                res.status(201).send("User added successfully");
+                return res.status(500).send("Internal Server Error");
             }
+
+            const emailCount = result[0].count;
+
+            // If the email exists, return an error
+            if (emailCount > 0) {
+                return res.status(400).send("Email already exists");
+            }
+
+            // If the email does not exist, proceed to add the user
+            // Generate a salt to use for hashing
+            const salt = await bcrypt.genSalt(10);
+            // Hash the password using the salt
+            const hashedPassword = await bcrypt.hash(password, salt);
+
+            const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, ?, ?,'C')";
+            db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword], (err, result) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send("Failed to add user");
+                } else {
+                    res.status(201).send("User added successfully");
+                }
+            });
         });
     } catch (error) {
         console.log(error);
@@ -75,12 +118,13 @@ router.post('/user/add', async (req, res) => {
 });
 
 
+
 router.put('/user/update/:id', authMiddleware,async (req, res) => {
     const userId = req.params.id;
   const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
 
   // Check if the user ID from the token matches the user ID from the request parameters
-  if (userId !== tokenUserId) {
+  if (userId != tokenUserId) {
     return res.status(403).json({ error: 'You are not authorized to access this user' });
   }
 
@@ -118,7 +162,7 @@ router.delete('/user/delete/:id',authMiddleware, (req, res) => {
   const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
 
   // Check if the user ID from the token matches the user ID from the request parameters
-  if (userId !== tokenUserId) {
+  if (userId != tokenUserId) {
     return res.status(403).json({ error: 'You are not authorized to access this user' });
   }
 
@@ -143,8 +187,8 @@ router.post('/user/signin', (req, res) => {
     try {
       // Find the user by email
       const findUserQuery = 'SELECT * FROM userregistration WHERE email = ?';
-      const secretKey = crypto.randomBytes(32).toString('hex');
-      db.query(findUserQuery, [email], (err, result) => {
+      //const secretKey = crypto.randomBytes(32).toString('hex');
+      db.query(findUserQuery, [email], async (err, result) => {
         if (err) {
           console.log(err);
           res.status(500).send('Internal server error');
@@ -159,13 +203,13 @@ router.post('/user/signin', (req, res) => {
         const user = result[0];
         console.log(user);
         // Compare the provided password with the stored hashed password
-        const validPassword = bcrypt.compare(password, user.password);
+        const validPassword = bcrypt.compare(user.password, password);
         if (!validPassword) {
           res.status(401).send('Invalid email or password');
           return;
         }
   
-        const token = jwt.sign({ userId: user.user_id, email: user.email }, secretKey, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.user_id, email: user.email }, secretKey, { expiresIn: '24h' });
         res.status(200).json({ token: token, userId : user.user_id, fName : user.first_name, lName : user.last_name,status:user.status});
         //res.status(200).send('Sign-in successful');
       });
@@ -181,7 +225,7 @@ router.post('/user/signin', (req, res) => {
   const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
 
   // Check if the user ID from the token matches the user ID from the request parameters
-  if (userId !== tokenUserId) {
+  if (userId != tokenUserId) {
     return res.status(403).json({ error: 'You are not authorized to access this user' });
   }
 
@@ -191,7 +235,7 @@ router.post('/user/signin', (req, res) => {
     //const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
 
     // Check if the user ID from the token matches the user ID from the request parameters
-    if (userId !== tokenUserId) {
+    if (userId != tokenUserId) {
         return res.status(403).json({ error: "You are not authorized to change this user's password" });
     }
 
