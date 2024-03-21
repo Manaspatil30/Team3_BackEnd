@@ -1,63 +1,91 @@
-// const express = require('express');
-// const router = express.Router();
-// const bcrypt = require('bcrypt');
-// const jwt = require('jsonwebtoken');
-// const db = require('../config/db'); // Import your database connection
+import express from 'express';
+import db from '../config/db.js';
 
-// // Secret key for JWT
-// const crypto = require('crypto');
-// const secretKey = crypto.randomBytes(32).toString('hex');
+const router = express.Router();
 
-// router.post('/register', async (req, res) => {
-//     try {
-//         const { username, password } = req.body;
+// Middleware to check if the user is an admin
+const isAdmin = async (req, res, next) => {
+  const userId = req.user.userId; // Assuming you're passing the user ID through JWT or session
 
-//         // Check if the username already exists
-//         const existingAdmin = await db.query('SELECT * FROM admins WHERE username = ?', [username]);
+  try {
+    const selectQuery = 'SELECT status FROM userregistration WHERE user_id = ?';
+    db.query(selectQuery, [userId], (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
 
-//         if (existingAdmin.length > 0) {
-//             return res.status(400).json({ message: 'Username already exists' });
-//         }
+      if (result.length > 0 && result[0].status === 'A') {
+        next(); // User is an admin, proceed to the next middleware or route handler
+      } else {
+        res.status(403).json({ error: 'Unauthorized' });
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
 
-//         // Hash the password
-//         const hashedPassword = await bcrypt.hash(password, 10);
+// Sales and Inventory Management Routes
 
-//         // Insert the admin into the database
-//         await db.query('INSERT INTO admins (username, password) VALUES (?, ?)', [username, hashedPassword]);
+// Get all products
+router.get('/products', isAdmin, (req, res) => {
+  const selectQuery = 'SELECT * FROM product';
+  db.query(selectQuery, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.json(result);
+    }
+  });
+});
 
-//         res.status(201).json({ message: 'Admin registered successfully' });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// });
+// Add a new product
+router.post('/products', isAdmin, (req, res) => {
+  const { product_name, description, category, quantity, best_before } = req.body;
+  const insertQuery = 'INSERT INTO product (product_name, description, category, quantity, best_before) VALUES (?, ?, ?, ?, ?)';
+  db.query(insertQuery, [product_name, description, category, quantity, best_before], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.status(201).json({ message: 'Product added successfully' });
+    }
+  });
+});
 
-// router.post('/login', async (req, res) => {
-//     try {
-//         const { username, password } = req.body;
+// Update a product
+router.put('/products/:id', isAdmin, (req, res) => {
+  const productId = req.params.id;
+  const { product_name, description, category, quantity, best_before } = req.body;
+  const updateQuery = 'UPDATE product SET product_name = ?, description = ?, category = ?, quantity = ?, best_before = ? WHERE product_id = ?';
+  db.query(updateQuery, [product_name, description, category, quantity, best_before, productId], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.json({ message: 'Product updated successfully' });
+    }
+  });
+});
 
-//         // Check if the admin exists
-//         const admin = await db.query('SELECT * FROM admins WHERE username = ?', [username]);
+// Delete a product
+router.delete('/products/:id', isAdmin, (req, res) => {
+  const productId = req.params.id;
+  const deleteQuery = 'DELETE FROM product WHERE product_id = ?';
+  db.query(deleteQuery, [productId], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.json({ message: 'Product deleted successfully' });
+    }
+  });
+});
 
-//         if (admin.length === 0) {
-//             return res.status(401).json({ message: 'Invalid username or password' });
-//         }
+// Add more routes for sales and inventory management as needed
 
-//         // Compare passwords
-//         const passwordMatch = await bcrypt.compare(password, admin[0].password);
-
-//         if (!passwordMatch) {
-//             return res.status(401).json({ message: 'Invalid username or password' });
-//         }
-
-//         // Generate JWT token
-//         const token = jwt.sign({ username: admin[0].username, isAdmin: true }, secretKey);
-
-//         res.status(200).json({ token });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// });
-
-// module.exports = router;
+export default router;
