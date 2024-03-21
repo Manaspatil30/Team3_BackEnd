@@ -207,18 +207,6 @@ router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
 });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* Sign up and sign in*/
 
 // Sign Up Route
@@ -272,78 +260,28 @@ app.post('/signup', async (req, res) => {
 //     }
 // });
 
-// Protected Route Example
-app.get('/protected', authenticateToken, (req, res) => {
-    res.json({ message: 'Protected Route Accessed Successfully' });
+// Query to process payment
+app.post('/process-payment', (req, res) => {
+    const { amount, cardNumber, expiryDate, cvv } = req.body;
+    console.log('Processing payment...');
+    console.log('Amount:', amount);
+    console.log('Card Number:', cardNumber);
+    console.log('Expiry Date:', expiryDate);
+    console.log('CVV:', cvv);
+    
+    // Simulate a successful payment
+    const paymentResult = {
+        success: true,
+        message: 'Dummy payment: Payment processed successfully.'
+    };
+    
+    res.json(paymentResult);
 });
-
-
-
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (token == null) return res.status(401).json({ error: 'Authentication failed. Token not provided.' });
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Authentication failed. Invalid token.' });
-        req.user = user;
-        next();
-    });
-}
-
-
-/*Payment  gateway integration*/
-
-
-// const gateway = new braintree.BraintreeGateway({
-//     environment: braintree.Environment.Sandbox,
-//     merchantId: 'rppzqr3dvsk2xbst',
-//     publicKey: 'xd9v7ggwgj862p6n',
-//     privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
-// });
-
-// Endpoint to generate a client token for the Braintree client
-app.get('/client_token', async (req, res) => {
-    try {
-        const response = await gateway.clientToken.generate({});
-        res.send(response.clientToken);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to generate client token');
-    }
-});
-
-// Endpoint to process a payment
-app.post('/checkout', async (req, res) => {
-    const { amount, payment_method_nonce } = req.body;
-
-    try {
-        const saleRequest = {
-            amount: amount,
-            paymentMethodNonce: payment_method_nonce,
-            options: {
-                submitForSettlement: true
-            }
-        };
-
-        const result = await gateway.transaction.sale(saleRequest);
-
-        if (result.success || result.transaction) {
-            res.status(200).send("Payment successful");
-        } else {
-            res.status(400).send("Payment failed");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to process payment');
-    }
-});
-  
-  
 
 /* Rating and review route*/
 
 // Define routes for product ratings and reviews
-app.post('/api/product/:product_id/rate', (req, res) => {
+app.post('/product/:product_id/rate', (req, res) => {
     const productId = req.params.product_id;
     const { user_id, rating } = req.body;
 
@@ -359,7 +297,7 @@ app.post('/api/product/:product_id/rate', (req, res) => {
     });
 });
 
-app.get('/api/product/:product_id/ratings', (req, res) => {
+app.get('/product/:product_id/ratings', (req, res) => {
     const productId = req.params.product_id;
 
     // Retrieve ratings for the product from the database
@@ -375,7 +313,7 @@ app.get('/api/product/:product_id/ratings', (req, res) => {
     });
 });
 
-app.post('/api/product/:product_id/review', (req, res) => {
+app.post('/product/:product_id/review', (req, res) => {
     const productId = req.params.product_id;
     const { user_id, review } = req.body;
 
@@ -391,7 +329,7 @@ app.post('/api/product/:product_id/review', (req, res) => {
     });
 });
 
-app.get('/api/product/:product_id/reviews', (req, res) => {
+app.get('/product/:product_id/reviews', (req, res) => {
     const productId = req.params.product_id;
 
     // Retrieve reviews for the product from the database
@@ -406,5 +344,70 @@ app.get('/api/product/:product_id/reviews', (req, res) => {
         res.status(200).json({ reviews });
     });
 });
+
+app.get('/productDetails/:productId', (req, res) => {
+    const productId = parseInt(req.params.productId, 10);
+    if (isNaN(productId)) {
+        return res.status(400).json({ error: 'Invalid product ID' });
+    }
+
+    console.log("Received productId:", productId); // Debugging statement
+
+    const selectQuery = `
+        SELECT
+            p.product_id, p.product_name, p.description, p.category, p.quantity,
+            sp.price, s.store_name
+        FROM
+            product p
+        INNER JOIN storeproducts sp ON p.product_id = sp.product_id
+        INNER JOIN stores s ON sp.store_id = s.store_id
+        WHERE
+            p.product_id = ?
+        GROUP BY
+            p.product_id, s.store_name
+    `;
+
+    db.query(selectQuery, [productId], (err, results) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            const productDetails = {};
+
+            results.forEach(row => {
+                const { product_id, product_name, description, category, quantity, price, store_name } = row;
+
+                if (!productDetails[product_id]) {
+                    productDetails[product_id] = {
+                        product_id,
+                        product_name,
+                        description,
+                        category,
+                        quantity,
+                        stores: []
+                    };
+                }
+
+                productDetails[product_id].stores.push({
+                    store_name,
+                    price
+                });
+            });
+
+            console.log(productDetails); // Debugging statement
+            res.json(productDetails);
+        }
+    });
+});
+
+    // db.query(selectQuery, [productId], (err, results) => {
+    //     if (err) {
+    //         console.log(err);
+    //         res.status(500).json({ error: 'Internal Server Error' });
+    //     } else {
+    //         console.log("Query results:", results); // Debugging statement
+    //         res.json(results);
+    //     }
+    // });
 
 export default app;
