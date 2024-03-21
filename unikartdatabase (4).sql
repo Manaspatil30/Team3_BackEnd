@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 19, 2024 at 08:22 PM
+-- Generation Time: Mar 21, 2024 at 10:32 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -37,6 +37,20 @@ CREATE TABLE `admins` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `audit_logs`
+--
+
+CREATE TABLE `audit_logs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `action` varchar(255) DEFAULT NULL,
+  `details` text DEFAULT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `basket`
 --
 
@@ -57,15 +71,16 @@ CREATE TABLE `basketitems` (
   `user_id` int(11) DEFAULT NULL,
   `product_id` int(11) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
-  `quantity` int(11) NOT NULL
+  `quantity` int(11) NOT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `basketitems`
 --
 
-INSERT INTO `basketitems` (`basket_id`, `user_id`, `product_id`, `price`, `quantity`) VALUES
-(9, 1, 1, 100.00, 4);
+INSERT INTO `basketitems` (`basket_id`, `user_id`, `product_id`, `price`, `quantity`, `updated_at`) VALUES
+(9, 1, 1, 100.00, 4, '2024-03-21 15:10:38');
 
 -- --------------------------------------------------------
 
@@ -85,7 +100,9 @@ CREATE TABLE `membershiptypes` (
 --
 
 INSERT INTO `membershiptypes` (`MembershipTypeID`, `TypeName`, `Description`, `Price`) VALUES
-(1, 'Unikart Plus', 'Discounted delivery charges with zero convenience fees', 10.00);
+(1, 'Bronze', 'Bronze membership offers basic access to our product comparison tool, allowing customers to compare prices across different stores.', 10.00),
+(2, 'Silver', 'Silver membership includes all the benefits of Bronze, plus access to exclusive deals and promotions, and a 5% discount on all orders.', 20.00),
+(3, 'Gold', 'Gold membership provides all the benefits of Silver, in addition to free delivery for all orders, priority customer support, and a 10% discount on all orders.', 30.00);
 
 -- --------------------------------------------------------
 
@@ -113,7 +130,10 @@ CREATE TABLE `orders` (
   `user_id` int(11) DEFAULT NULL,
   `order_status` varchar(255) DEFAULT NULL,
   `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `delivery_address` text DEFAULT NULL
+  `delivery_address` text DEFAULT NULL,
+  `returned` tinyint(1) NOT NULL DEFAULT 0,
+  `admin_id` int(11) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -163,7 +183,35 @@ INSERT INTO `product` (`product_id`, `product_name`, `description`, `category`, 
 (22, 'Butter', 'Unsalted Butter', 'Dairy', 100, '2023-12-31', NULL, NULL, NULL),
 (23, 'Sugar', 'Granulated White Sugar', 'Pantry', 150, '2024-06-01', NULL, NULL, NULL),
 (24, 'Flour', 'All-purpose Flour', 'Pantry', 150, '2024-07-01', NULL, NULL, NULL),
-(25, 'Orange', 'Fresh Oranges', 'Fruits', 100, '2023-12-20', NULL, NULL, NULL);
+(25, 'Orange', 'Fresh Oranges', 'Fruits', 100, '2023-12-20', NULL, NULL, NULL),
+(26, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(27, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(28, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(29, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(30, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(31, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(32, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(33, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(34, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(35, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(36, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(37, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(38, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(39, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(40, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(41, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(42, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(43, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(44, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(45, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(46, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(47, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(48, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(49, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(50, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(51, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(52, 'Teabag', 'Tea', 'Fruits', 100, '2023-12-31', NULL, NULL, NULL),
+(53, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -191,6 +239,20 @@ CREATE TABLE `product_reviews` (
   `user_id` int(11) DEFAULT NULL,
   `review` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rate_limiting`
+--
+
+CREATE TABLE `rate_limiting` (
+  `id` int(11) NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `endpoint` varchar(255) DEFAULT NULL,
+  `request_count` int(11) DEFAULT 1,
+  `last_request` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -228,89 +290,119 @@ CREATE TABLE `storeproducts` (
   `store_product_id` int(11) NOT NULL,
   `product_id` int(11) DEFAULT NULL,
   `store_id` int(11) DEFAULT NULL,
-  `price` decimal(10,2) DEFAULT NULL
+  `price` decimal(10,2) DEFAULT NULL,
+  `description` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `storeproducts`
 --
 
-INSERT INTO `storeproducts` (`store_product_id`, `product_id`, `store_id`, `price`) VALUES
-(1, 1, 1, 0.95),
-(2, 2, 1, 1.20),
-(3, 3, 1, 0.89),
-(4, 4, 1, 2.50),
-(5, 5, 1, 0.70),
-(6, 6, 1, 1.10),
-(7, 7, 1, 0.80),
-(8, 8, 1, 1.20),
-(9, 9, 1, 2.50),
-(10, 10, 1, 1.75),
-(11, 11, 1, 3.00),
-(12, 12, 1, 4.00),
-(13, 13, 1, 5.00),
-(14, 14, 1, 0.90),
-(15, 15, 1, 0.60),
-(16, 21, 1, 1.50),
-(17, 22, 1, 1.20),
-(18, 23, 1, 2.00),
-(19, 24, 1, 3.50),
-(20, 25, 1, 2.50),
-(21, 16, 1, 3.50),
-(22, 17, 1, 2.20),
-(23, 18, 1, 1.50),
-(24, 19, 1, 1.20),
-(25, 20, 1, 0.50),
-(26, 1, 2, 0.90),
-(27, 2, 2, 1.15),
-(28, 3, 2, 0.85),
-(29, 4, 2, 2.40),
-(30, 5, 2, 0.65),
-(31, 6, 2, 1.05),
-(32, 7, 2, 0.75),
-(33, 8, 2, 1.10),
-(34, 9, 2, 2.30),
-(35, 10, 2, 1.60),
-(36, 11, 2, 2.90),
-(37, 12, 2, 3.80),
-(38, 13, 2, 4.90),
-(39, 14, 2, 0.85),
-(40, 15, 2, 0.55),
-(41, 16, 2, 3.40),
-(42, 17, 2, 2.10),
-(43, 18, 2, 1.40),
-(44, 19, 2, 1.10),
-(45, 20, 2, 0.45),
-(46, 21, 2, 1.40),
-(47, 22, 2, 1.10),
-(48, 23, 2, 1.90),
-(49, 24, 2, 3.40),
-(50, 25, 2, 2.40),
-(51, 1, 3, 0.92),
-(52, 2, 3, 1.18),
-(53, 3, 3, 0.87),
-(54, 4, 3, 2.45),
-(55, 5, 3, 0.68),
-(56, 6, 3, 1.08),
-(57, 7, 3, 0.78),
-(58, 8, 3, 1.15),
-(59, 9, 3, 2.40),
-(60, 10, 3, 1.70),
-(61, 11, 3, 2.95),
-(62, 12, 3, 3.85),
-(63, 13, 3, 4.95),
-(64, 14, 3, 0.88),
-(65, 15, 3, 0.58),
-(66, 16, 3, 3.45),
-(67, 17, 3, 2.15),
-(68, 18, 3, 1.45),
-(69, 19, 3, 1.15),
-(70, 20, 3, 0.48),
-(71, 21, 3, 1.45),
-(72, 22, 3, 1.15),
-(73, 23, 3, 1.95),
-(74, 24, 3, 3.45),
-(75, 25, 3, 2.45);
+INSERT INTO `storeproducts` (`store_product_id`, `product_id`, `store_id`, `price`, `description`) VALUES
+(1, 1, 1, 0.95, 'Freshly picked, crunchy apples ideal for a nutritious snack or your baking delights. Sourced with care, exclusive to Tesco.'),
+(2, 2, 1, 1.20, 'Juicy pears, handpicked for their sweet flavor. Perfect for desserts or as a healthy snack. Only at Tesco.'),
+(3, 3, 1, 0.89, 'Creamy 2% milk, sourced directly from local farms. Freshness and quality in every bottle. Tesco’s dairy best.'),
+(4, 4, 1, 2.50, 'Rich and flavorful cheddar cheese, aged perfectly to enhance your meals. Exclusively available at Tesco.'),
+(5, 5, 1, 0.70, 'Crunchy, fresh carrots, harvested for their sweetness. Ideal for cooking or as a raw snack. Freshness guaranteed by Tesco.'),
+(6, 6, 1, 1.10, 'Ripe bananas with a sweet, creamy texture. Perfect for baking or as a quick snack. Brought to you by Tesco.'),
+(7, 7, 1, 0.80, 'Smooth, natural yogurt, made with the finest ingredients. A delicious, healthy treat. Tesco’s commitment to quality.'),
+(8, 8, 1, 1.20, 'Whole wheat bread, baked fresh every morning. Soft, nutritious, and perfect for sandwiches. Tesco’s bakery pride.'),
+(9, 9, 1, 2.50, 'Free-range eggs, from hens that roam freely. Rich in flavor and nutrition. Tesco’s choice for your healthy breakfast.'),
+(10, 10, 1, 1.75, 'Fresh, juicy tomatoes, organically grown. Bursting with flavor, perfect for salads or cooking. Tesco’s farm to your table.'),
+(11, 11, 1, 3.00, 'Tender chicken breast, sourced from farms with high welfare standards. Perfect for healthy meals. Tesco’s fresh poultry.'),
+(12, 12, 1, 4.00, 'Lean ground beef, high in protein and flavor. Ideal for burgers and meatballs. Quality meat from Tesco.'),
+(13, 13, 1, 5.00, 'Wild-caught salmon, rich in Omega-3. Fresh, flavorful, and perfect for grilling. Tesco’s seafood selection.'),
+(14, 14, 1, 0.90, 'Earthy russet potatoes, versatile and flavorful. Ideal for baking, mashing, or roasting. Tesco’s quality produce.'),
+(15, 15, 1, 0.60, 'Crisp, yellow onions, a staple for any kitchen. Adds flavor to any dish. Hand-selected by Tesco.'),
+(16, 21, 1, 1.50, 'Premium basmati rice, with a delicate aroma and fluffy texture. Ideal for exotic dishes. Tesco brings the world to your kitchen.'),
+(17, 22, 1, 1.20, 'Authentic Italian pasta, perfect al dente every time. Ideal for your favorite pasta dishes. Tesco’s selection.'),
+(18, 23, 1, 2.00, 'Fresh orange juice, squeezed from ripe oranges. Refreshing and rich in flavor. Start your day with Tesco’s best.'),
+(19, 24, 1, 3.50, 'Arabica coffee beans, rich in flavor and aroma. Perfect for your morning brew. Tesco’s premium coffee selection.'),
+(20, 25, 1, 2.50, 'Dark chocolate, rich and luxurious. Made with the finest cocoa beans. Indulge in Tesco’s sweet delight.'),
+(21, 16, 1, 3.50, 'Extra virgin olive oil, cold-pressed for the highest quality. Perfect for dressing or cooking. Tesco’s pantry essentials.'),
+(22, 17, 1, 2.20, 'Creamy, unsalted butter, made from the freshest cream. Ideal for baking or cooking. Rich flavor from Tesco.'),
+(23, 18, 1, 1.50, 'Fine granulated sugar, perfect for baking or sweetening. Tesco’s sweet staple for your pantry.'),
+(24, 19, 1, 1.20, 'All-purpose flour, milled for consistency and quality. Your baking essential, from Tesco.'),
+(25, 20, 1, 0.50, 'Fresh oranges, bursting with vitamin C. Juicy and sweet, perfect for juicing. Freshly picked for Tesco customers.'),
+(26, 1, 2, 0.90, NULL),
+(27, 2, 2, 1.15, NULL),
+(28, 3, 2, 0.85, NULL),
+(29, 4, 2, 2.40, NULL),
+(30, 5, 2, 0.65, NULL),
+(31, 6, 2, 1.05, NULL),
+(32, 7, 2, 0.75, NULL),
+(33, 8, 2, 1.10, NULL),
+(34, 9, 2, 2.30, NULL),
+(35, 10, 2, 1.60, NULL),
+(36, 11, 2, 2.90, NULL),
+(37, 12, 2, 3.80, NULL),
+(38, 13, 2, 4.90, NULL),
+(39, 14, 2, 0.85, NULL),
+(40, 15, 2, 0.55, NULL),
+(41, 16, 2, 3.40, NULL),
+(42, 17, 2, 2.10, NULL),
+(43, 18, 2, 1.40, NULL),
+(44, 19, 2, 1.10, NULL),
+(45, 20, 2, 0.45, NULL),
+(46, 21, 2, 1.40, NULL),
+(47, 22, 2, 1.10, NULL),
+(48, 23, 2, 1.90, NULL),
+(49, 24, 2, 3.40, NULL),
+(50, 25, 2, 2.40, NULL),
+(51, 1, 3, 0.92, NULL),
+(52, 2, 3, 1.18, NULL),
+(53, 3, 3, 0.87, NULL),
+(54, 4, 3, 2.45, NULL),
+(55, 5, 3, 0.68, NULL),
+(56, 6, 3, 1.08, NULL),
+(57, 7, 3, 0.78, NULL),
+(58, 8, 3, 1.15, NULL),
+(59, 9, 3, 2.40, NULL),
+(60, 10, 3, 1.70, NULL),
+(61, 11, 3, 2.95, NULL),
+(62, 12, 3, 3.85, NULL),
+(63, 13, 3, 4.95, NULL),
+(64, 14, 3, 0.88, NULL),
+(65, 15, 3, 0.58, NULL),
+(66, 16, 3, 3.45, NULL),
+(67, 17, 3, 2.15, NULL),
+(68, 18, 3, 1.45, NULL),
+(69, 19, 3, 1.15, NULL),
+(70, 20, 3, 0.48, NULL),
+(71, 21, 3, 1.45, NULL),
+(72, 22, 3, 1.15, NULL),
+(73, 23, 3, 1.95, NULL),
+(74, 24, 3, 3.45, NULL),
+(75, 25, 3, 2.45, NULL),
+(76, NULL, NULL, NULL, NULL),
+(77, 26, NULL, 0.00, NULL),
+(78, 27, NULL, 0.00, NULL),
+(79, 28, NULL, 0.00, NULL),
+(80, 29, NULL, 0.00, NULL),
+(81, 30, NULL, 0.00, NULL),
+(82, 31, NULL, 0.00, NULL),
+(83, 32, NULL, 0.00, NULL),
+(84, 33, NULL, 0.00, NULL),
+(85, 34, NULL, 0.00, NULL),
+(86, 35, NULL, 0.00, NULL),
+(87, 36, NULL, 0.00, NULL),
+(88, 37, NULL, 0.00, NULL),
+(89, 38, NULL, 0.00, NULL),
+(90, 39, NULL, 0.00, NULL),
+(91, 40, NULL, 0.00, NULL),
+(92, 41, NULL, 0.00, NULL),
+(93, 42, NULL, 0.00, NULL),
+(94, 43, NULL, 0.00, NULL),
+(95, 44, NULL, 0.00, NULL),
+(96, 45, NULL, 0.00, NULL),
+(97, 46, NULL, 0.00, NULL),
+(98, 47, NULL, 0.00, NULL),
+(99, 48, NULL, 0.00, NULL),
+(100, 49, NULL, 0.00, NULL),
+(101, 50, NULL, 0.00, NULL),
+(102, 51, NULL, 0.00, NULL),
+(103, 52, NULL, 0.00, NULL),
+(104, 53, NULL, 0.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -347,26 +439,19 @@ CREATE TABLE `userregistration` (
   `email` varchar(255) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `MembershipTypeID` int(11) DEFAULT NULL,
-  `password` varchar(45) DEFAULT NULL,
-  `start_date` date DEFAULT NULL,
-  `end_date` date DEFAULT NULL,
-  `status` varchar(1) DEFAULT NULL
+  `password` varchar(45) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `userregistration`
 --
 
-INSERT INTO `userregistration` (`user_id`, `first_name`, `last_name`, `phone_number`, `email`, `address`, `MembershipTypeID`, `password`, `start_date`, `end_date`, `status`) VALUES
-(1, 'Manas', 'Patil', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(2, 'manas', 'patil', '4452627', 'manas@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL),
-(3, 'Max', 'Mendonca', '12349876', 'max@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL),
-(4, 'violla', 'dsouza', '000999888', 'violla@gmail.com', NULL, NULL, 'manas@123', NULL, NULL, NULL),
-(5, 'John', 'Doe', '123456789', 'john.doe@example.com', '123 Main St', NULL, '$2b$10$ST951jwYa9kk4uz4mmoneurHn/AZaT8.AZJ/SI', '2022-01-01', '2023-01-01', NULL),
-(6, 'John', 'Doe', '123456789', 'john.doe@example.com', '123 Main St', 1, '$2b$10$CHT0KCxNwXSFfm1StNQh.OiiJy/9Z5kdRvn9kQ', NULL, NULL, NULL),
-(7, 'John', 'Doe', '123456789', 'john.doe@example.com', '123 Main St', 1, '$2b$10$L3Sd0mPjRkbLtg2Oz3wbleg03DT3dSF1BXRMDu', NULL, NULL, NULL),
-(8, 'John', 'Doe', '123456789', 'john.doe@example.com', '123 Main St', 1, '$2b$10$b7/QcO5P6eO8fh2FpVc6Je9tt8zBl8xOPc7bki', NULL, NULL, NULL),
-(9, 'John', 'Doe', '123456789', 'max123', '123 Main St', 1, '$2b$10$7TGTSS9ZMdTa3Cd5YVMfVus6ewW6hISkRpyjR4', NULL, NULL, NULL);
+INSERT INTO `userregistration` (`user_id`, `first_name`, `last_name`, `phone_number`, `email`, `address`, `MembershipTypeID`, `password`) VALUES
+(1, 'Manas', 'Patil', NULL, NULL, NULL, NULL, NULL),
+(2, 'manas', 'patil', '4452627', 'manas@gmail.com', NULL, NULL, NULL),
+(3, 'Max', 'Mendonca', '12349876', 'max@gmail.com', NULL, NULL, NULL),
+(4, 'violla', 'dsouza', '000999888', 'violla@gmail.com', NULL, NULL, 'manas@123'),
+(5, 'Max', 'Mendonca', '999888777', 'max123@gmail.com', NULL, NULL, 'max@123');
 
 --
 -- Indexes for dumped tables
@@ -377,6 +462,12 @@ INSERT INTO `userregistration` (`user_id`, `first_name`, `last_name`, `phone_num
 --
 ALTER TABLE `admins`
   ADD PRIMARY KEY (`admin_id`);
+
+--
+-- Indexes for table `audit_logs`
+--
+ALTER TABLE `audit_logs`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `basket`
@@ -413,7 +504,8 @@ ALTER TABLE `orderdetails`
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`order_id`),
   ADD KEY `basket_id` (`basket_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `orders_ibfk_3` (`admin_id`);
 
 --
 -- Indexes for table `product`
@@ -436,6 +528,12 @@ ALTER TABLE `product_reviews`
   ADD PRIMARY KEY (`review_id`),
   ADD KEY `product_id` (`product_id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `rate_limiting`
+--
+ALTER TABLE `rate_limiting`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `storeaddress`
@@ -476,6 +574,12 @@ ALTER TABLE `admins`
   MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `audit_logs`
+--
+ALTER TABLE `audit_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `basket`
 --
 ALTER TABLE `basket`
@@ -509,7 +613,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT for table `product_ratings`
@@ -524,6 +628,12 @@ ALTER TABLE `product_reviews`
   MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `rate_limiting`
+--
+ALTER TABLE `rate_limiting`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `storeaddress`
 --
 ALTER TABLE `storeaddress`
@@ -533,7 +643,7 @@ ALTER TABLE `storeaddress`
 -- AUTO_INCREMENT for table `storeproducts`
 --
 ALTER TABLE `storeproducts`
-  MODIFY `store_product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
+  MODIFY `store_product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT for table `stores`
@@ -545,7 +655,7 @@ ALTER TABLE `stores`
 -- AUTO_INCREMENT for table `userregistration`
 --
 ALTER TABLE `userregistration`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
@@ -576,7 +686,8 @@ ALTER TABLE `orderdetails`
 --
 ALTER TABLE `orders`
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`basket_id`) REFERENCES `basket` (`basket_id`),
-  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `userregistration` (`user_id`);
+  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `userregistration` (`user_id`),
+  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`admin_id`);
 
 --
 -- Constraints for table `product_ratings`
