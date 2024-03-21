@@ -33,6 +33,7 @@ cloudinary.config({
         const imageUrl = req.file.path;
         const productId = req.body.productId;
       
+      
         let columnName;
         switch (store) {
           case 'Tesco':

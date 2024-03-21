@@ -407,4 +407,192 @@ app.get('/api/product/:product_id/reviews', (req, res) => {
     });
 });
 
+//Sign up with hash
+
+app.post('/signup', async (req, res) => {
+    const { first_name, last_name, phone_number, email, address, password, MembershipTypeID } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, password, MembershipTypeID) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // Ensure you're passing the hashedPassword instead of password
+        db.query(insertQuery, [first_name, last_name, phone_number, email, address, hashedPassword, MembershipTypeID], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            res.status(201).json({ message: 'User registered successfully' });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+// get users
+
+app.get('/users', authenticateToken, (req, res) => {
+    // Add authorization check for admin role if needed
+    const query = "SELECT user_id, first_name, last_name, phone_number, email, address, MembershipTypeID FROM userregistration";
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json(results);
+    });
+});
+//update users
+
+app.put('/user/:userId', authenticateToken, async (req, res) => {
+    const { userId } = req.params;
+    const { first_name, last_name, phone_number, email, address, MembershipTypeID } = req.body;
+    // Exclude password update for simplicity, handle separately with extra security
+    const updateQuery = "UPDATE userregistration SET first_name = ?, last_name = ?, phone_number = ?, email = ?, address = ?, MembershipTypeID = ? WHERE user_id = ?";
+    db.query(updateQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, userId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ message: 'User updated successfully' });
+    });
+});
+// delete users
+
+app.delete('/user/:userId', authenticateToken, (req, res) => {
+    const { userId } = req.params;
+    // Add authorization check for admin or the user themselves
+    const deleteQuery = "DELETE FROM userregistration WHERE user_id = ?";
+    db.query(deleteQuery, [userId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ message: 'User deleted successfully' });
+    });
+});
+
+
+// admin routes
+// add a new admin
+
+app.post('/admin', authenticateToken, async (req, res) => {
+    // Add authorization check for super admin role
+    const { username, password, email } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const insertQuery = "INSERT INTO admins (username, password, email) VALUES (?, ?, ?)";
+        db.query(insertQuery, [username, hashedPassword, email], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            res.status(201).json({ message: 'Admin created successfully' });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// get admins 
+app.get('/admins', authenticateToken, (req, res) => {
+    // Add authorization check for super admin role
+    const query = "SELECT admin_id, username, email FROM admins";
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json(results);
+    });
+});
+
+// update admin
+
+app.put('/admin/:adminId', authenticateToken, async (req, res) => {
+    const { adminId } = req.params;
+    const { username, email } = req.body;
+    // Exclude password update for simplicity, handle separately with extra security
+    const updateQuery = "UPDATE admins SET username = ?, email = ? WHERE admin_id = ?";
+    db.query(updateQuery, [username, email, adminId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Admin not found' });
+        }
+        res.json({ message: 'Admin updated successfully' });
+    });
+});
+
+
+//remove admin
+
+app.delete('/admin/:adminId', authenticateToken, (req, res) => {
+    const { adminId } = req.params;
+    // Add authorization check for super admin
+    const deleteQuery = "DELETE FROM admins WHERE admin_id = ?";
+    db.query(deleteQuery, [adminId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Admin not found' });
+        }
+        res.json({ message: 'Admin deleted successfully' });
+    });
+});
+
+// rate limit for logging in 
+const rateLimit = (req, res, next) => {
+    const ip_address = req.ip;
+    const endpoint = req.originalUrl; // Or a specific identifier for the route
+    const limit = 100; // Max requests per hour
+    const query = `
+        INSERT INTO rate_limiting (ip_address, endpoint, request_count)
+        VALUES (?, ?, 1)
+        ON DUPLICATE KEY UPDATE request_count = request_count + 1, last_request = CURRENT_TIMESTAMP;
+    `;
+
+    // Check current count and last request timestamp
+    db.query(query, [ip_address, endpoint], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Error checking rate limit");
+        }
+
+        // Fetch the row to check request count and timestamp
+        db.query('SELECT request_count, last_request FROM rate_limiting WHERE ip_address = ? AND endpoint = ?', [ip_address, endpoint], (err, rows) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Error fetching rate limit data");
+            }
+            const data = rows[0];
+            if (data && data.request_count > limit && new Date() - data.last_request < 3600000) { // 3600000 ms = 1 hour
+                return res.status(429).send("Rate limit exceeded");
+            } else {
+                next();
+            }
+        });
+    });
+};
+
+// log actions
+const logAction = (userId, action, details) => {
+    const query = "INSERT INTO audit_logs (user_id, action, details) VALUES (?, ?, ?)";
+    db.query(query, [userId, action, details], (err, result) => {
+        if (err) {
+            console.error("Error logging action:", err);
+        }
+    });
+};
+
+
 export default app;
