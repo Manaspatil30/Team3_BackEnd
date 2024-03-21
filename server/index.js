@@ -207,18 +207,6 @@ router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
 });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* Sign up and sign in*/
 
 // Sign Up Route
@@ -272,78 +260,28 @@ app.post('/signup', async (req, res) => {
 //     }
 // });
 
-// Protected Route Example
-app.get('/protected', authenticateToken, (req, res) => {
-    res.json({ message: 'Protected Route Accessed Successfully' });
+// Query to process payment
+app.post('/process-payment', (req, res) => {
+    const { amount, cardNumber, expiryDate, cvv } = req.body;
+    console.log('Processing payment...');
+    console.log('Amount:', amount);
+    console.log('Card Number:', cardNumber);
+    console.log('Expiry Date:', expiryDate);
+    console.log('CVV:', cvv);
+    
+    // Simulate a successful payment
+    const paymentResult = {
+        success: true,
+        message: 'Dummy payment: Payment processed successfully.'
+    };
+    
+    res.json(paymentResult);
 });
-
-
-
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (token == null) return res.status(401).json({ error: 'Authentication failed. Token not provided.' });
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Authentication failed. Invalid token.' });
-        req.user = user;
-        next();
-    });
-}
-
-
-/*Payment  gateway integration*/
-
-
-// const gateway = new braintree.BraintreeGateway({
-//     environment: braintree.Environment.Sandbox,
-//     merchantId: 'rppzqr3dvsk2xbst',
-//     publicKey: 'xd9v7ggwgj862p6n',
-//     privateKey: 'd9c9af7064b85534a5d13e4ea349f38f'
-// });
-
-// Endpoint to generate a client token for the Braintree client
-app.get('/client_token', async (req, res) => {
-    try {
-        const response = await gateway.clientToken.generate({});
-        res.send(response.clientToken);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to generate client token');
-    }
-});
-
-// Endpoint to process a payment
-app.post('/checkout', async (req, res) => {
-    const { amount, payment_method_nonce } = req.body;
-
-    try {
-        const saleRequest = {
-            amount: amount,
-            paymentMethodNonce: payment_method_nonce,
-            options: {
-                submitForSettlement: true
-            }
-        };
-
-        const result = await gateway.transaction.sale(saleRequest);
-
-        if (result.success || result.transaction) {
-            res.status(200).send("Payment successful");
-        } else {
-            res.status(400).send("Payment failed");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to process payment');
-    }
-});
-  
-  
 
 /* Rating and review route*/
 
 // Define routes for product ratings and reviews
-app.post('/api/product/:product_id/rate', (req, res) => {
+app.post('/product/:product_id/rate', (req, res) => {
     const productId = req.params.product_id;
     const { user_id, rating } = req.body;
 
@@ -359,7 +297,7 @@ app.post('/api/product/:product_id/rate', (req, res) => {
     });
 });
 
-app.get('/api/product/:product_id/ratings', (req, res) => {
+app.get('/product/:product_id/ratings', (req, res) => {
     const productId = req.params.product_id;
 
     // Retrieve ratings for the product from the database
@@ -375,7 +313,7 @@ app.get('/api/product/:product_id/ratings', (req, res) => {
     });
 });
 
-app.post('/api/product/:product_id/review', (req, res) => {
+app.post('/product/:product_id/review', (req, res) => {
     const productId = req.params.product_id;
     const { user_id, review } = req.body;
 
@@ -391,7 +329,7 @@ app.post('/api/product/:product_id/review', (req, res) => {
     });
 });
 
-app.get('/api/product/:product_id/reviews', (req, res) => {
+app.get('/product/:product_id/reviews', (req, res) => {
     const productId = req.params.product_id;
 
     // Retrieve reviews for the product from the database
@@ -407,192 +345,69 @@ app.get('/api/product/:product_id/reviews', (req, res) => {
     });
 });
 
-//Sign up with hash
-
-app.post('/signup', async (req, res) => {
-    const { first_name, last_name, phone_number, email, address, password, MembershipTypeID } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, password, MembershipTypeID) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        // Ensure you're passing the hashedPassword instead of password
-        db.query(insertQuery, [first_name, last_name, phone_number, email, address, hashedPassword, MembershipTypeID], (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-            res.status(201).json({ message: 'User registered successfully' });
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+app.get('/productDetails/:productId', (req, res) => {
+    const productId = parseInt(req.params.productId, 10);
+    if (isNaN(productId)) {
+        return res.status(400).json({ error: 'Invalid product ID' });
     }
-});
-// get users
 
-app.get('/users', authenticateToken, (req, res) => {
-    // Add authorization check for admin role if needed
-    const query = "SELECT user_id, first_name, last_name, phone_number, email, address, MembershipTypeID FROM userregistration";
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        res.json(results);
-    });
-});
-//update users
+    console.log("Received productId:", productId); // Debugging statement
 
-app.put('/user/:userId', authenticateToken, async (req, res) => {
-    const { userId } = req.params;
-    const { first_name, last_name, phone_number, email, address, MembershipTypeID } = req.body;
-    // Exclude password update for simplicity, handle separately with extra security
-    const updateQuery = "UPDATE userregistration SET first_name = ?, last_name = ?, phone_number = ?, email = ?, address = ?, MembershipTypeID = ? WHERE user_id = ?";
-    db.query(updateQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, userId], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json({ message: 'User updated successfully' });
-    });
-});
-// delete users
-
-app.delete('/user/:userId', authenticateToken, (req, res) => {
-    const { userId } = req.params;
-    // Add authorization check for admin or the user themselves
-    const deleteQuery = "DELETE FROM userregistration WHERE user_id = ?";
-    db.query(deleteQuery, [userId], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json({ message: 'User deleted successfully' });
-    });
-});
-
-
-// admin routes
-// add a new admin
-
-app.post('/admin', authenticateToken, async (req, res) => {
-    // Add authorization check for super admin role
-    const { username, password, email } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const insertQuery = "INSERT INTO admins (username, password, email) VALUES (?, ?, ?)";
-        db.query(insertQuery, [username, hashedPassword, email], (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-            res.status(201).json({ message: 'Admin created successfully' });
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-// get admins 
-app.get('/admins', authenticateToken, (req, res) => {
-    // Add authorization check for super admin role
-    const query = "SELECT admin_id, username, email FROM admins";
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        res.json(results);
-    });
-});
-
-// update admin
-
-app.put('/admin/:adminId', authenticateToken, async (req, res) => {
-    const { adminId } = req.params;
-    const { username, email } = req.body;
-    // Exclude password update for simplicity, handle separately with extra security
-    const updateQuery = "UPDATE admins SET username = ?, email = ? WHERE admin_id = ?";
-    db.query(updateQuery, [username, email, adminId], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Admin not found' });
-        }
-        res.json({ message: 'Admin updated successfully' });
-    });
-});
-
-
-//remove admin
-
-app.delete('/admin/:adminId', authenticateToken, (req, res) => {
-    const { adminId } = req.params;
-    // Add authorization check for super admin
-    const deleteQuery = "DELETE FROM admins WHERE admin_id = ?";
-    db.query(deleteQuery, [adminId], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Admin not found' });
-        }
-        res.json({ message: 'Admin deleted successfully' });
-    });
-});
-
-// rate limit for logging in 
-const rateLimit = (req, res, next) => {
-    const ip_address = req.ip;
-    const endpoint = req.originalUrl; // Or a specific identifier for the route
-    const limit = 100; // Max requests per hour
-    const query = `
-        INSERT INTO rate_limiting (ip_address, endpoint, request_count)
-        VALUES (?, ?, 1)
-        ON DUPLICATE KEY UPDATE request_count = request_count + 1, last_request = CURRENT_TIMESTAMP;
+    const selectQuery = `
+        SELECT
+            p.product_id, p.product_name, p.description, p.category, p.quantity,
+            sp.price, s.store_name
+        FROM
+            product p
+        INNER JOIN storeproducts sp ON p.product_id = sp.product_id
+        INNER JOIN stores s ON sp.store_id = s.store_id
+        WHERE
+            p.product_id = ?
+        GROUP BY
+            p.product_id, s.store_name
     `;
 
-    // Check current count and last request timestamp
-    db.query(query, [ip_address, endpoint], (err, result) => {
+    db.query(selectQuery, [productId], (err, results) => {
         if (err) {
-            console.error(err);
-            return res.status(500).send("Error checking rate limit");
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            const productDetails = {};
+
+            results.forEach(row => {
+                const { product_id, product_name, description, category, quantity, price, store_name } = row;
+
+                if (!productDetails[product_id]) {
+                    productDetails[product_id] = {
+                        product_id,
+                        product_name,
+                        description,
+                        category,
+                        quantity,
+                        stores: []
+                    };
+                }
+
+                productDetails[product_id].stores.push({
+                    store_name,
+                    price
+                });
+            });
+
+            console.log(productDetails); // Debugging statement
+            res.json(productDetails);
         }
-
-        // Fetch the row to check request count and timestamp
-        db.query('SELECT request_count, last_request FROM rate_limiting WHERE ip_address = ? AND endpoint = ?', [ip_address, endpoint], (err, rows) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send("Error fetching rate limit data");
-            }
-            const data = rows[0];
-            if (data && data.request_count > limit && new Date() - data.last_request < 3600000) { // 3600000 ms = 1 hour
-                return res.status(429).send("Rate limit exceeded");
-            } else {
-                next();
-            }
-        });
     });
-};
+});
 
-// log actions
-const logAction = (userId, action, details) => {
-    const query = "INSERT INTO audit_logs (user_id, action, details) VALUES (?, ?, ?)";
-    db.query(query, [userId, action, details], (err, result) => {
-        if (err) {
-            console.error("Error logging action:", err);
-        }
-    });
-};
-
+    // db.query(selectQuery, [productId], (err, results) => {
+    //     if (err) {
+    //         console.log(err);
+    //         res.status(500).json({ error: 'Internal Server Error' });
+    //     } else {
+    //         console.log("Query results:", results); // Debugging statement
+    //         res.json(results);
+    //     }
+    // });
 
 export default app;
