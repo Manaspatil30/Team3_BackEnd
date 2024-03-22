@@ -10,6 +10,7 @@ import filterRoutes from './routes/filterRoutes.js'
 import imageRoutes from './routes/imageRoutes.js'
 import productRoutes from './routes/productsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
+import priceRoutes from './routes/priceRoutes.js'
 import adminRoutes from'./routes/adminRoutes.js';
 
 const app = express();
@@ -25,8 +26,9 @@ app.use('/', productRoutes)
 app.use('/', authentication)
 app.use('/', baskets)
 app.use('/', filterRoutes)
-app.use('/', imageRoutes);
+app.use('/', imageRoutes)
 app.use('/', searchRoutes)
+app.use('/',priceRoutes)
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
