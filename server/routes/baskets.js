@@ -52,9 +52,10 @@ router.get('/basket/:user_id', (req, res) => {
 // });
 
 // Route to add item to user's basket
-router.post('/basket/:userId', (req, res) => {
-  const userId = req.params.userId;
-  const productId = req.body.productId; // Assuming you get productId in the request body
+router.post('/basket/add', (req, res) => {
+    const {userId, productId, quantity} = req.body;
+//   const userId = req.params.userId;
+//   const productId = req.params.productId; // Assuming you get productId in the request body
 
   // Check if the item already exists in the basket
   const checkQuery = `SELECT * FROM basketitems WHERE user_id = ${userId} AND product_id = ${productId}`;
@@ -67,7 +68,7 @@ router.post('/basket/:userId', (req, res) => {
           if (checkResult.length > 0) {
               // If the item already exists, update the quantity or other details
               // For example, you can increment the quantity by 1
-              const updateQuery = `UPDATE basketitems SET quantity = quantity + 1 WHERE user_id = ${userId} AND product_id = ${productId}`;
+              const updateQuery = `UPDATE basketitems SET quantity = quantity + ${quantity} WHERE user_id = ${userId} AND product_id = ${productId}`;
 
               db.query(updateQuery, (updateErr, updateResult) => {
                   if (updateErr) {
@@ -79,7 +80,7 @@ router.post('/basket/:userId', (req, res) => {
               });
           } else {
               // If the item doesn't exist, insert a new entry
-              const insertQuery = `INSERT INTO basketitems (user_id, product_id, quantity) VALUES (${userId}, ${productId}, 1)`;
+              const insertQuery = `INSERT INTO basketitems (user_id, product_id, quantity) VALUES (${userId}, ${productId}, ${quantity})`;
 
               db.query(insertQuery, (insertErr, insertResult) => {
                   if (insertErr) {

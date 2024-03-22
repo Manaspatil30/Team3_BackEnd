@@ -117,6 +117,47 @@ router.post('/user/add', async (req, res) => {
     }
 });
 
+router.post('/user/addAdmin', async (req, res) => {
+    const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
+    
+    try {
+        // Check if the email already exists
+        const emailExistsQuery = "SELECT COUNT(*) AS count FROM userregistration WHERE email = ?";
+        db.query(emailExistsQuery, [email], async (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send("Internal Server Error");
+            }
+
+            const emailCount = result[0].count;
+
+            // If the email exists, return an error
+            if (emailCount > 0) {
+                return res.status(400).send("Email already exists");
+            }
+
+            // If the email does not exist, proceed to add the user
+            // Generate a salt to use for hashing
+            const salt = await bcrypt.genSalt(10);
+            // Hash the password using the salt
+            const hashedPassword = await bcrypt.hash(password, salt);
+
+            const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, ?, ?,'A')";
+            db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword], (err, result) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send("Failed to add user");
+                } else {
+                    res.status(201).send("User added successfully");
+                }
+            });
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Failed to add user");
+    }
+});
+
 
 
 router.put('/user/update/:id', authMiddleware,async (req, res) => {
