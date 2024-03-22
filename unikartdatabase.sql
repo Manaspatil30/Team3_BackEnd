@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 21, 2024 at 10:32 PM
+-- Generation Time: Mar 21, 2024 at 10:37 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -439,7 +439,10 @@ CREATE TABLE `userregistration` (
   `email` varchar(255) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `MembershipTypeID` int(11) DEFAULT NULL,
-  `password` varchar(45) DEFAULT NULL
+  `password` varchar(200) DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `status` varchar(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
