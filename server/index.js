@@ -10,7 +10,7 @@ import filterRoutes from './routes/filterRoutes.js'
 import imageRoutes from './routes/imageRoutes.js'
 import productRoutes from './routes/productsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
-
+import advertisementRoutes from './routes/advertisementRoutes.js';
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
@@ -26,6 +26,7 @@ app.use('/', baskets)
 app.use('/', filterRoutes)
 app.use('/', imageRoutes);
 app.use('/', searchRoutes)
+app.use('/', advertisementRoutes);
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
