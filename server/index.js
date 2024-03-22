@@ -10,6 +10,7 @@ import filterRoutes from './routes/filterRoutes.js'
 import imageRoutes from './routes/imageRoutes.js'
 import productRoutes from './routes/productsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
+import adminRoutes from'./routes/adminRoutes.js';
 
 const app = express();
 app.use(express.json());
@@ -19,7 +20,7 @@ app.use(cors());
 // Use image routes
 // app.use('/admin/images', imageRoutes);
 //admin registration routes
-// app.use('/admin', adminRoutes);
+app.use('/', adminRoutes);
 app.use('/', productRoutes)
 app.use('/', authentication)
 app.use('/', baskets)
