@@ -54,8 +54,8 @@ router.get('/products/highest-to-lowest', (req, res) => {
 });
 
 // filter product ratings by star
-router.get('/products/rating', (req, res) => {
-  const minRating = parseInt(req.query.minRating);
+router.get('/products/rating/:rating', (req, res) => {
+  const minRating = parseInt(req.params.rating);
 
   if (isNaN(minRating) || minRating < 1 || minRating > 5) {
     return res.status(400).json({ error: 'Invalid rating value' });

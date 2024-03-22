@@ -239,24 +239,6 @@ app.post('/signup', async (req, res) => {
 //     }
 // });
 
-// Query to process payment
-app.post('/process-payment', (req, res) => {
-    const { amount, cardNumber, expiryDate, cvv } = req.body;
-    console.log('Processing payment...');
-    console.log('Amount:', amount);
-    console.log('Card Number:', cardNumber);
-    console.log('Expiry Date:', expiryDate);
-    console.log('CVV:', cvv);
-    
-    // Simulate a successful payment
-    const paymentResult = {
-        success: true,
-        message: 'Dummy payment: Payment processed successfully.'
-    };
-    
-    res.json(paymentResult);
-});
-
 /* Rating and review route*/
 
 // Define routes for product ratings and reviews
