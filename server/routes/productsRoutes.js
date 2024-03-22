@@ -49,7 +49,7 @@ router.put('/product/update/:id', (req, res) => {
 
 //List Products
 router.get('/products', (req, res) => {
-    const selectQuery = "SELECT * FROM Product";
+    const selectQuery = "SELECT p.*, sp.price, sp.store_id FROM Product p JOIN StoreProducts sp ON p.product_id = sp.product_id";
     db.query(selectQuery, (err, results) => {
         if (err) {
             console.log(err);

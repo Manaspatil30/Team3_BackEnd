@@ -55,21 +55,23 @@ router.get('/products/highest-to-lowest', (req, res) => {
 
 // filter product ratings by star
 router.get('/products/rating', (req, res) => {
-  const minRating = parseInt(req.query.minRating);
+  const minRating = parseInt(req.body.minRating)
 
   if (isNaN(minRating) || minRating < 1 || minRating > 5) {
     return res.status(400).json({ error: 'Invalid rating value' });
   }
 
+  const maxRating = minRating + 1;
+
   const selectQuery = `
-    SELECT p.*, AVG(pr.rating) AS average_rating
-    FROM product p
-    LEFT JOIN product_ratings pr ON p.product_id = pr.product_id
-    GROUP BY p.product_id
-    HAVING AVG(pr.rating) >= ?
+  SELECT p.*, AVG(pr.rating) AS average_rating
+  FROM product p
+  LEFT JOIN product_ratings pr ON p.product_id = pr.product_id
+  GROUP BY p.product_id
+  HAVING AVG(pr.rating) >= ? AND AVG(pr.rating) < ?
   `;
 
-  db.query(selectQuery, [minRating], (err, results) => {
+  db.query(selectQuery, [minRating, maxRating], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).send('Failed to fetch products by rating');

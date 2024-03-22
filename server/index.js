@@ -137,6 +137,7 @@ app.post('/orders/place', (req, res) => {
             });
         }
     })
+});
     
     // Route to get all store addresses
 app.get('/api/storeAddress', (req, res) => {
@@ -153,7 +154,7 @@ app.get('/api/storeAddress', (req, res) => {
 });
 
 // Endpoint to get price comparisons for a specific product
-router.get('/api/price-comparison/:productId', (req, res) => {
+app.get('/api/price-comparison/:productId', (req, res) => {
     const productId = req.params.productId;
 
     // Query to fetch prices from storeproducts table for the given product
@@ -180,7 +181,7 @@ router.get('/api/price-comparison/:productId', (req, res) => {
     });
 });
 //  Grocery products by price range
-router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
+app.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
     const minPrice = parseFloat(req.params.minPrice);
     const maxPrice = parseFloat(req.params.maxPrice);
 
@@ -208,7 +209,7 @@ router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
         }
     });
 });
-});
+
 
 /* Sign up and sign in*/
 
