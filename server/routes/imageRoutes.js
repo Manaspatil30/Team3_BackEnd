@@ -11,19 +11,45 @@ cloudinary.config({
     api_key: '116233414617767',
     api_secret: 'QGxpcw5tvz3s3ZdoBlWA89qgtus'
 });
-router.get('/uploadi', (req, res) => {
-    const rseq = req.body;
-    cloudinary.v2.uploader.upload("a.jpeg")
+
+  router.post('/uploadin', (req, res) => {
+    const {store, product_id, file_url} = req.body;
+    //const productId = req.productId;
+    console.log(req.body);
+    cloudinary.v2.uploader.upload(file_url)
       .then(result => {
         console.log(result);
-        res.status(200).json({ success: true, result });
+        const imageUrl = result.url;
+        let columnName;
+        switch (store) {
+          case 'Tesco':
+            columnName = 'image_url_tesco';
+            break;
+          case 'Aldi':
+            columnName = 'image_url_aldi';
+            break;
+          case 'Lidl':
+            columnName = 'image_url_lidl';
+            break;
+          default:
+            columnName = 'image_url_lidl';
+        }
+  
+        const updateQuery = `UPDATE product SET ${columnName} = ? WHERE product_id = ?`;
+        db.query(updateQuery, [imageUrl, product_id], (err, result) => {
+          if (err) {
+            console.error('Error updating product image URL: ', err);
+            return res.status(500).json({ error: 'Error updating product image URL' });
+          }
+          // Send the response after the database operation is complete
+          return res.status(200).json({ message: 'Image URL updated successfully' });
+        });
       })
       .catch(error => {
         console.error(error);
         res.status(500).json({ success: false, error: error.message });
       });
   });
-
 router.put('/upload',  (req, res) => {
   try {
     
