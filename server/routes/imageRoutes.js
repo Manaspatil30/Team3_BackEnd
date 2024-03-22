@@ -11,20 +11,8 @@ cloudinary.config({
     api_key: '116233414617767',
     api_secret: 'QGxpcw5tvz3s3ZdoBlWA89qgtus'
 });
-router.get('/uploadi', (req, res) => {
-    const rseq = req.body;
-    cloudinary.v2.uploader.upload("a.jpeg")
-      .then(result => {
-        console.log(result);
-        res.status(200).json({ success: true, result });
-      })
-      .catch(error => {
-        console.error(error);
-        res.status(500).json({ success: false, error: error.message });
-      });
-  });
 
-router.put('/upload',  (req, res) => {
+router.post('/upload',  (req, res) => {
   try {
     
     // const image=req.body.image;
