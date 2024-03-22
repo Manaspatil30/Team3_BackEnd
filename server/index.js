@@ -10,7 +10,7 @@ import filterRoutes from './routes/filterRoutes.js'
 import imageRoutes from './routes/imageRoutes.js'
 import productRoutes from './routes/productsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
-import priceRoutes from './routes/priceRoutes.js'
+import payment from "./routes/payment.js";
 
 const app = express();
 app.use(express.json());
@@ -27,7 +27,8 @@ app.use('/', baskets)
 app.use('/', filterRoutes)
 app.use('/', imageRoutes)
 app.use('/', searchRoutes)
-app.use('/',priceRoutes)
+app.use('/', payment)
+
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
@@ -67,31 +68,7 @@ app.get('/client_token', async (req, res) => {
     }
 });
 
-// Endpoint to process a payment
-app.post('/checkout', async (req, res) => {
-    const { amount, payment_method_nonce } = req.body;
 
-    try {
-        const saleRequest = {
-            amount: amount,
-            paymentMethodNonce: payment_method_nonce,
-            options: {
-                submitForSettlement: true
-            }
-        };
-
-        const result = await gateway.transaction.sale(saleRequest);
-
-        if (result.success || result.transaction) {
-            res.status(200).send("Payment successful");
-        } else {
-            res.status(400).send("Payment failed");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to process payment');
-    }
-});
 
 // Route to place a new order
 app.post('/orders/place', (req, res) => {
