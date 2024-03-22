@@ -17,6 +17,83 @@ router.get('/basket/:user_id', (req, res) => {
     );
   });
 
+  // Route to get user's basket
+// router.get('/basket/:userId', (req, res) => {
+//   const userId = req.params.userId;
+//   const selectQuery = `SELECT b.*, p.product_name, p.price
+//                       FROM basketitems b
+//                       JOIN product p ON b.product_id = p.product_id
+//                       WHERE b.user_id = ${userId}`;
+  
+//   db.query(selectQuery, (err, result) => {
+//       if (err) {
+//           console.log(err);
+//           res.status(500).json({ error: 'Internal Server Error' });
+//       } else {
+//           res.json(result);
+//       }
+//   });
+// });
+
+// // Route to add a product to the user's basket
+// router.post('/basket/add', (req, res) => {
+//   const { userId, productId, quantity } = req.body;
+//   const insertQuery = `INSERT INTO basketitems (user_id, product_id, quantity) 
+//                        VALUES (${userId}, ${productId}, ${quantity})`;
+  
+//   db.query(insertQuery, (err, result) => {
+//       if (err) {
+//           console.log(err);
+//           res.status(500).json({ error: 'Internal Server Error' });
+//       } else {
+//           res.json({ message: 'Product added to the basket successfully' });
+//       }
+//   });
+// });
+
+// Route to add item to user's basket
+router.post('/basket/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const productId = req.body.productId; // Assuming you get productId in the request body
+
+  // Check if the item already exists in the basket
+  const checkQuery = `SELECT * FROM basketitems WHERE user_id = ${userId} AND product_id = ${productId}`;
+
+  db.query(checkQuery, (checkErr, checkResult) => {
+      if (checkErr) {
+          console.log(checkErr);
+          res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+          if (checkResult.length > 0) {
+              // If the item already exists, update the quantity or other details
+              // For example, you can increment the quantity by 1
+              const updateQuery = `UPDATE basketitems SET quantity = quantity + 1 WHERE user_id = ${userId} AND product_id = ${productId}`;
+
+              db.query(updateQuery, (updateErr, updateResult) => {
+                  if (updateErr) {
+                      console.log(updateErr);
+                      res.status(500).json({ error: 'Internal Server Error' });
+                  } else {
+                      res.json({ message: 'Item updated in the basket' });
+                  }
+              });
+          } else {
+              // If the item doesn't exist, insert a new entry
+              const insertQuery = `INSERT INTO basketitems (user_id, product_id, quantity) VALUES (${userId}, ${productId}, 1)`;
+
+              db.query(insertQuery, (insertErr, insertResult) => {
+                  if (insertErr) {
+                      console.log(insertErr);
+                      res.status(500).json({ error: 'Internal Server Error' });
+                  } else {
+                      res.json({ message: 'Item added to the basket' });
+                  }
+              });
+          }
+      }
+  });
+});
+
 router.post('/placeOrder', (req, res) => {
   // Extract data from the request body
   const { userId, basketId, deliveryAddress } = req.body;
