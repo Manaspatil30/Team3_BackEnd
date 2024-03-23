@@ -10,7 +10,7 @@ import filterRoutes from './routes/filterRoutes.js'
 import imageRoutes from './routes/imageRoutes.js'
 import productRoutes from './routes/productsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
-import priceRoutes from './routes/priceRoutes.js'
+import payment from "./routes/payment.js";
 import adminRoutes from'./routes/adminRoutes.js';
 
 const app = express();
@@ -28,7 +28,8 @@ app.use('/', baskets)
 app.use('/', filterRoutes)
 app.use('/', imageRoutes)
 app.use('/', searchRoutes)
-app.use('/',priceRoutes)
+app.use('/', payment)
+
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
@@ -68,31 +69,7 @@ app.get('/client_token', async (req, res) => {
     }
 });
 
-// Endpoint to process a payment
-app.post('/checkout', async (req, res) => {
-    const { amount, payment_method_nonce } = req.body;
 
-    try {
-        const saleRequest = {
-            amount: amount,
-            paymentMethodNonce: payment_method_nonce,
-            options: {
-                submitForSettlement: true
-            }
-        };
-
-        const result = await gateway.transaction.sale(saleRequest);
-
-        if (result.success || result.transaction) {
-            res.status(200).send("Payment successful");
-        } else {
-            res.status(400).send("Payment failed");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to process payment');
-    }
-});
 
 // Route to place a new order
 app.post('/orders/place', (req, res) => {
@@ -137,6 +114,7 @@ app.post('/orders/place', (req, res) => {
             });
         }
     })
+});
     
     // Route to get all store addresses
 app.get('/api/storeAddress', (req, res) => {
@@ -153,7 +131,7 @@ app.get('/api/storeAddress', (req, res) => {
 });
 
 // Endpoint to get price comparisons for a specific product
-router.get('/api/price-comparison/:productId', (req, res) => {
+app.get('/api/price-comparison/:productId', (req, res) => {
     const productId = req.params.productId;
 
     // Query to fetch prices from storeproducts table for the given product
@@ -180,7 +158,7 @@ router.get('/api/price-comparison/:productId', (req, res) => {
     });
 });
 //  Grocery products by price range
-router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
+app.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
     const minPrice = parseFloat(req.params.minPrice);
     const maxPrice = parseFloat(req.params.maxPrice);
 
@@ -208,7 +186,7 @@ router.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
         }
     });
 });
-});
+
 
 /* Sign up and sign in*/
 
@@ -262,24 +240,6 @@ app.post('/signup', async (req, res) => {
 //         res.status(500).json({ error: 'Internal Server Error' });
 //     }
 // });
-
-// Query to process payment
-app.post('/process-payment', (req, res) => {
-    const { amount, cardNumber, expiryDate, cvv } = req.body;
-    console.log('Processing payment...');
-    console.log('Amount:', amount);
-    console.log('Card Number:', cardNumber);
-    console.log('Expiry Date:', expiryDate);
-    console.log('CVV:', cvv);
-    
-    // Simulate a successful payment
-    const paymentResult = {
-        success: true,
-        message: 'Dummy payment: Payment processed successfully.'
-    };
-    
-    res.json(paymentResult);
-});
 
 /* Rating and review route*/
 

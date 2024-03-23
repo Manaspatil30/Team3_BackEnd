@@ -52,9 +52,8 @@ router.get('/basket/:user_id', (req, res) => {
 // });
 
 // Route to add item to user's basket
-router.post('/basket/:userId', (req, res) => {
-  const userId = req.params.userId;
-  const productId = req.body.productId; // Assuming you get productId in the request body
+router.post('/basket/add', (req, res) => {
+  const { userId, productId, quantity, storeId } = req.body;
 
   // Check if the item already exists in the basket
   const checkQuery = `SELECT * FROM basketitems WHERE user_id = ${userId} AND product_id = ${productId}`;
@@ -64,32 +63,43 @@ router.post('/basket/:userId', (req, res) => {
           console.log(checkErr);
           res.status(500).json({ error: 'Internal Server Error' });
       } else {
-          if (checkResult.length > 0) {
-              // If the item already exists, update the quantity or other details
-              // For example, you can increment the quantity by 1
-              const updateQuery = `UPDATE basketitems SET quantity = quantity + 1 WHERE user_id = ${userId} AND product_id = ${productId}`;
+          // Fetch the product price from the storeproducts table
+          const priceQuery = `SELECT price FROM storeproducts WHERE product_id = ${productId} AND store_id = ${storeId}`;
 
-              db.query(updateQuery, (updateErr, updateResult) => {
-                  if (updateErr) {
-                      console.log(updateErr);
-                      res.status(500).json({ error: 'Internal Server Error' });
-                  } else {
-                      res.json({ message: 'Item updated in the basket' });
-                  }
-              });
-          } else {
-              // If the item doesn't exist, insert a new entry
-              const insertQuery = `INSERT INTO basketitems (user_id, product_id, quantity) VALUES (${userId}, ${productId}, 1)`;
+          db.query(priceQuery, (priceErr, priceResult) => {
+              if (priceErr) {
+                  console.log(priceErr);
+                  res.status(500).json({ error: 'Internal Server Error' });
+              } else {
+                  const productPrice = priceResult[0].price;
 
-              db.query(insertQuery, (insertErr, insertResult) => {
-                  if (insertErr) {
-                      console.log(insertErr);
-                      res.status(500).json({ error: 'Internal Server Error' });
+                  if (checkResult.length > 0) {
+                      // If the item already exists, update the quantity and price
+                      const updateQuery = `UPDATE basketitems SET quantity = quantity + ${quantity}, price = ${productPrice * (checkResult[0].quantity + quantity)} WHERE user_id = ${userId} AND product_id = ${productId}`;
+
+                      db.query(updateQuery, (updateErr, updateResult) => {
+                          if (updateErr) {
+                              console.log(updateErr);
+                              res.status(500).json({ error: 'Internal Server Error' });
+                          } else {
+                              res.json({ message: 'Item updated in the basket' });
+                          }
+                      });
                   } else {
-                      res.json({ message: 'Item added to the basket' });
+                      // If the item doesn't exist, insert a new entry
+                      const insertQuery = `INSERT INTO basketitems (user_id, product_id, quantity, price) VALUES (${userId}, ${productId}, ${quantity}, ${productPrice * quantity})`;
+
+                      db.query(insertQuery, (insertErr, insertResult) => {
+                          if (insertErr) {
+                              console.log(insertErr);
+                              res.status(500).json({ error: 'Internal Server Error' });
+                          } else {
+                              res.json({ message: 'Item added to the basket' });
+                          }
+                      });
                   }
-              });
-          }
+              }
+          });
       }
   });
 });
