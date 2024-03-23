@@ -116,66 +116,60 @@ router.post('/basket/add/:productId/:storeId', (req, res) => {
   });
 });
 
-
-
 // Route to remove one or multiple items/quantities from basket
 router.post('/basket/remove', (req, res) => {
-  const { userId, productId, quantityToRemove } = req.body;
+  const { userId, productId, quantityToRemove, storeId } = req.body;
 
-  // Query to get the current quantity of the product in the cart
+  // Query to get the current quantity of the product in the cart for the specific store
   const getQuantityQuery = `
-      SELECT quantity
-      FROM basketitems
-      WHERE user_id = ? AND product_id = ?
+    SELECT quantity
+    FROM basketitems
+    WHERE user_id = ? AND product_id = ? AND store_id = ?
   `;
 
-  db.query(getQuantityQuery, [userId, productId], (err, result) => {
-      if (err) {
-          console.log(err);
-          res.status(500).json({ error: 'Internal Server Error' });
+  db.query(getQuantityQuery, [userId, productId, storeId], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      if (result.length > 0) {
+        const currentQuantity = result[0].quantity;
+        if (currentQuantity > quantityToRemove) {
+          // Decrease the quantity by quantityToRemove
+          const newQuantity = currentQuantity - quantityToRemove;
+          const updateQuery = `
+            UPDATE basketitems
+            SET quantity = ?
+            WHERE user_id = ? AND product_id = ? AND store_id = ?
+          `;
+          db.query(updateQuery, [newQuantity, userId, productId, storeId], (err, result) => {
+            if (err) {
+              console.log(err);
+              res.status(500).json({ error: 'Internal Server Error' });
+            } else {
+              res.json({ message: 'Basket updated successfully' });
+            }
+          });
+        } else {
+          // Quantity to remove is greater than or equal to the current quantity, remove the entire entry
+          const deleteQuery = `
+            DELETE FROM basketitems
+            WHERE user_id = ? AND product_id = ? AND store_id = ?
+          `;
+          db.query(deleteQuery, [userId, productId, storeId], (err, result) => {
+            if (err) {
+              console.log(err);
+              res.status(500).json({ error: 'Internal Server Error' });
+            } else {
+              res.json({ message: 'Item removed from basket successfully' });
+            }
+          });
+        }
       } else {
-          if (result.length > 0) {
-              const currentQuantity = result[0].quantity;
-
-              if (currentQuantity > quantityToRemove) {
-                  // Decrease the quantity by quantityToRemove
-                  const newQuantity = currentQuantity - quantityToRemove;
-
-                  const updateQuery = `
-                      UPDATE basketitems
-                      SET quantity = ?
-                      WHERE user_id = ? AND product_id = ?
-                  `;
-
-                  db.query(updateQuery, [newQuantity, userId, productId], (err, result) => {
-                      if (err) {
-                          console.log(err);
-                          res.status(500).json({ error: 'Internal Server Error' });
-                      } else {
-                          res.json({ message: 'Basket updated successfully' });
-                      }
-                  });
-              } else {
-                  // Quantity to remove is greater than or equal to the current quantity, remove the entire entry
-                  const deleteQuery = `
-                      DELETE FROM basketitems
-                      WHERE user_id = ? AND product_id = ?
-                  `;
-
-                  db.query(deleteQuery, [userId, productId], (err, result) => {
-                      if (err) {
-                          console.log(err);
-                          res.status(500).json({ error: 'Internal Server Error' });
-                      } else {
-                          res.json({ message: 'Item removed from basket successfully' });
-                      }
-                  });
-              }
-          } else {
-              // Product is not in the cart
-              res.json({ message: 'Product not found in the basket' });
-          }
+        // Product is not in the cart for the specific store
+        res.json({ message: 'Product not found in the basket for the specified store' });
       }
+    }
   });
 });
 
