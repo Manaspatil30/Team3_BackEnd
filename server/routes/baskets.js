@@ -39,8 +39,9 @@ router.get('/basket/:userId', (req, res) => {
 
 
 // Route to add item to user's basket
-router.post('/basket/add', (req, res) => {
-  const { userId, productId, quantity, storeId } = req.body;
+router.post('/basket/add/:productId/:storeId', (req, res) => {
+    const {productId, storeId} = req.params
+  const { userId, quantity  } = req.body;
 
   // Check if the item already exists in the basket for the specific store
   const checkQuery = `SELECT * FROM basketitems WHERE user_id = ? AND product_id = ? AND store_id = ?`;
