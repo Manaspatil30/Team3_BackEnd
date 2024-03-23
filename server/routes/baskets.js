@@ -16,7 +16,8 @@ router.get('/basket/:userId', (req, res) => {
       p.product_name,
       bi.quantity,
       bi.price,
-      (bi.quantity * bi.price) AS total_price
+      (bi.quantity * bi.price) AS total_price,
+      bi.store_id
     FROM
       basketitems bi
     JOIN
