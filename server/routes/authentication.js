@@ -134,7 +134,7 @@ router.post('/user/addAdmin', async (req, res) => {
             // If the email exists, return an error
             if (emailCount > 0) {
                 return res.status(400).send("Email already exists");
-            }
+            }   
 
             // If the email does not exist, proceed to add the user
             // Generate a salt to use for hashing
@@ -142,7 +142,7 @@ router.post('/user/addAdmin', async (req, res) => {
             // Hash the password using the salt
             const hashedPassword = await bcrypt.hash(password, salt);
 
-            const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, ?, ?,'A')";
+            const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, 0, ?,'A')";
             db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword], (err, result) => {
                 if (err) {
                     console.log(err);
