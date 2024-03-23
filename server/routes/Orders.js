@@ -27,6 +27,33 @@ const query = (sql, params) => new Promise((resolve, reject) => {
       else resolve(result);
     });
   });
+
+  
+// Router to place order 
+router.post('/placeOrder', (req, res) => {
+  // Extract data from the request body
+  const { userId, basketId, deliveryAddress } = req.body;
+
+  // Prepare SQL query to create a new order
+  const insertOrderQuery = `
+    INSERT INTO orders (user_id, basket_id, delivery_address, order_status)
+    VALUES (?, ?, ?, 'Pending')
+  `;
+
+  // Execute the SQL query to create a new order
+  db.query(insertOrderQuery, [userId, basketId, deliveryAddress], (err, result) => {
+    if (err) {
+      console.error('Error executing SQL query:', err);
+      res.status(500).json({ success: false, message: 'Error creating order' });
+      return;
+    }
+
+    // Order created successfully
+    const orderId = result.insertId;
+    console.log(`Order ${orderId} created successfully`);
+    res.json({ success: true, orderId, message: 'Order placed successfully' });
+  });
+});
   
   // Place an order
   
