@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 23, 2024 at 12:34 PM
+-- Generation Time: Mar 23, 2024 at 06:06 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -72,16 +72,17 @@ CREATE TABLE `basketitems` (
   `product_id` int(11) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
   `quantity` int(11) NOT NULL,
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `store_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `basketitems`
 --
 
-INSERT INTO `basketitems` (`basket_id`, `user_id`, `product_id`, `price`, `quantity`, `updated_at`) VALUES
-(9, 1, 1, 100.00, 4, '2024-03-21 15:10:38'),
-(12, 1, 2, 0.00, 7, '2024-03-23 11:14:34');
+INSERT INTO `basketitems` (`basket_id`, `user_id`, `product_id`, `price`, `quantity`, `updated_at`, `store_id`) VALUES
+(9, 1, 1, 100.00, 4, '2024-03-23 17:00:28', 1),
+(12, 1, 2, 0.00, 7, '2024-03-23 17:00:28', 1);
 
 -- --------------------------------------------------------
 
