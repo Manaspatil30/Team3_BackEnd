@@ -10,6 +10,8 @@ import filterRoutes from './routes/filterRoutes.js'
 import imageRoutes from './routes/imageRoutes.js'
 import productRoutes from './routes/productsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
+import randomProductsRouter from './routes/randomProductsRouter.js'
+import Orders from './routes/Orders.js';
 import payment from "./routes/payment.js";
 import adminRoutes from'./routes/adminRoutes.js';
 
@@ -28,14 +30,16 @@ app.use('/', baskets)
 app.use('/', filterRoutes)
 app.use('/', imageRoutes)
 app.use('/', searchRoutes)
+app.use('/api', randomProductsRouter);
+app.use('/orders', Orders);
+
+
 app.use('/', payment)
 
 
 app.listen(3001, (req, res)=>{
     console.log("Server is running at port 3001");
 })
-
-
 
 
 
