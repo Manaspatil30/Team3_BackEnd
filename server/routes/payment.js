@@ -45,7 +45,7 @@ router.post('/change-membership', (req, res) => {
   const userId = req.body.userId; // Assuming you have the user ID in the request body
   console.log(userId)
   // Update membership type to "S" directly in the database
-  db.query("UPDATE userregistration SET MembershipTypeID = '1' WHERE user_id = ?", [userId], (err, result) => {
+  db.query("UPDATE userregistration SET MembershipTypeID = '2' WHERE user_id = ?", [userId], (err, result) => {
       if (err) {
           console.error("Error updating membership type:", err);
           return res.status(500).send('Internal Server Error');
