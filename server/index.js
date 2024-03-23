@@ -31,7 +31,7 @@ app.use('/', filterRoutes)
 app.use('/', imageRoutes)
 app.use('/', searchRoutes)
 app.use('/api', randomProductsRouter);
-app.use('/orders', Orders);
+app.use('/', Orders);
 
 
 app.use('/', payment)
