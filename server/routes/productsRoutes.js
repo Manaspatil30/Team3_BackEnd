@@ -255,7 +255,7 @@ router.get('/productWithStores/:productId', (req, res) => {
   
     // Query to get store information for the product
     const storeQuery = `
-      SELECT sp.product_id, sp.price, s.store_name
+      SELECT sp.product_id, sp.price, sp.store_id, s.store_name
       FROM storeproducts sp
       JOIN stores s ON sp.store_id = s.store_id
       WHERE sp.product_id = ?
@@ -270,8 +270,8 @@ router.get('/productWithStores/:productId', (req, res) => {
         const product = productResult[0];
   
         db.query(storeQuery, [productId], (err, storeResult) => {
+            // console.log(productResult)
           if (err) throw err;
-  
           // Prepare the response array
           const response = storeResult.map(store => ({
             product_id: product.product_id,
@@ -279,9 +279,11 @@ router.get('/productWithStores/:productId', (req, res) => {
             description: product.description,
             category: product.category,
             quantity: product.quantity,
-            storeName: store.store_name
+            storeName: store.store_name,
+            price: store.price,
+            store_id : store.store_id
           }));
-  
+          console.log(response)
           res.json(response);
         });
       } else {
