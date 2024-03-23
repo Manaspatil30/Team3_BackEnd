@@ -248,8 +248,9 @@ router.get('/productWithStores/:productId', (req, res) => {
   
     // Query to get product information
     const productQuery = `
-      SELECT p.product_id, p.product_name, p.description, p.category, p.quantity
+      SELECT p.product_id, p.product_name, p.description, p.category, sp.quantity
       FROM product p
+      JOIN storeproducts sp ON p.product_id = sp.product_id
       WHERE p.product_id = ?
     `;
   
