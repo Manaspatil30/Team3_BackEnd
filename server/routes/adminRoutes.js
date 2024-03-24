@@ -6,9 +6,11 @@ const router = express.Router();
 
 // Sales and Inventory Management Routes
 
+//Get admin
+
 // Get all products
-router.get('/productss',  (req, res) => {
-  const selectQuery = 'SELECT * FROM product';
+router.get('/adminproducts',  (req, res) => {
+  const selectQuery = 'SELECT p.product_id, p.product_name, p.description, p.category, sp.quantity, sp.store_id FROM product p JOIN storeproducts sp ON p.product_id = sp.product_id';
   db.query(selectQuery, (err, result) => {
     if (err) {
       console.log(err);
