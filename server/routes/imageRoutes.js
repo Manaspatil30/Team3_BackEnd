@@ -9,26 +9,28 @@ const router = express.Router();
 cloudinary.config({
     cloud_name: 'dhtw6erpk',
     api_key: '116233414617767',
-    api_secret: 'QGxpcw5tvz3s3ZdoBlWA89qgtus'
+    api_secret: 'QGxpcw5tvz3s3ZdoBlWA89qgtus',
+
 });
 
   router.post('/uploadin', (req, res) => {
-    const {store, product_id, file_url} = req.body;
+    const {store, product_id,file_url} = req.body;
+    const base64EncodedFile = `data:image/png;base64,${file_url}`;
     //const productId = req.productId;
     console.log(req.body);
-    cloudinary.v2.uploader.upload(file_url)
+    cloudinary.v2.uploader.upload(base64EncodedFile)
       .then(result => {
         console.log(result);
         const imageUrl = result.url;
         let columnName;
         switch (store) {
-          case 'Tesco':
+          case 1:
             columnName = 'image_url_tesco';
             break;
-          case 'Aldi':
+          case 2:
             columnName = 'image_url_aldi';
             break;
-          case 'Lidl':
+          case 3:
             columnName = 'image_url_lidl';
             break;
           default:

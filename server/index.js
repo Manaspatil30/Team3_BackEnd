@@ -17,7 +17,9 @@ import adminRoutes from'./routes/adminRoutes.js';
 
 const app = express();
 app.use(express.json());
-app.use(bodyParser.urlencoded({extended:true}));
+const maxRequestSize = '50mb';
+app.use(bodyParser.json({ limit: maxRequestSize }));
+app.use(bodyParser.urlencoded({ extended: true, limit: maxRequestSize }));
 app.use(cors());
 
 // Use image routes
