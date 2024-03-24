@@ -254,6 +254,7 @@ router.post('/user/signin', (req, res) => {
         }
   
         const user = result[0];
+        console.log(user)
         console.log(user);
         // Compare the provided password with the stored hashed password
         const validPassword = bcrypt.compare(user.password, password);
@@ -261,9 +262,8 @@ router.post('/user/signin', (req, res) => {
           res.status(401).send('Invalid email or password');
           return;
         }
-  
         const token = jwt.sign({ userId: user.user_id, email: user.email }, secretKey, { expiresIn: '24h' });
-        res.status(200).json({ token: token, userId : user.user_id, fName : user.first_name, lName : user.last_name,status:user.status});
+        res.status(200).json({ token: token, userId : user.user_id, fName : user.first_name, lName : user.last_name,status:user.status, membership:user.MembershipTypeID});
         //res.status(200).send('Sign-in successful');
       });
     } catch (error) {
