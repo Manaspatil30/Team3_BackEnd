@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 24, 2024 at 04:36 PM
+-- Generation Time: Mar 24, 2024 at 06:29 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -74,7 +74,6 @@ INSERT INTO `basket` (`basket_id`, `user_id`, `created_at`) VALUES
 (10, 4, '2024-03-24 11:45:52'),
 (11, 5, '2024-03-24 11:45:52'),
 (12, 2, '2024-03-24 11:45:52'),
-(13, 2, '2024-03-24 11:46:26'),
 (14, 3, '2024-03-24 11:46:26'),
 (15, 4, '2024-03-24 11:46:26'),
 (16, 5, '2024-03-24 11:46:26'),
@@ -109,6 +108,18 @@ CREATE TABLE `basketitems` (
 
 INSERT INTO `basketitems` (`basket_id`, `user_id`, `product_id`, `price`, `quantity`, `updated_at`, `store_id`) VALUES
 (13, 2, 2, 3.60, 3, '2024-03-23 17:11:52', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contact_us`
+--
+
+CREATE TABLE `contact_us` (
+  `name` varchar(30) NOT NULL,
+  `email` varchar(30) NOT NULL,
+  `message` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -159,7 +170,17 @@ INSERT INTO `orderdetails` (`order_detail_id`, `order_id`, `store_product_id`, `
 (14, 54, 1, 2, 0.95, NULL, 1),
 (15, 54, 2, 1, 1.20, NULL, 1),
 (16, 56, 1, 2, 0.95, NULL, 1),
-(17, 56, 2, 1, 1.20, NULL, 1);
+(17, 56, 2, 1, 1.20, NULL, 1),
+(18, 75, 13, 2, 5.00, NULL, 1),
+(19, 75, 14, 1, 0.85, NULL, 2),
+(20, 93, 1, 2, 0.95, NULL, 1),
+(21, 93, 1, 1, 0.90, NULL, 2),
+(22, 94, 1, 2, 0.95, NULL, 1),
+(23, 94, 1, 1, 0.90, NULL, 2),
+(24, 95, 1, 2, 0.95, NULL, 1),
+(25, 95, 1, 1, 0.90, NULL, 2),
+(26, 96, 1, 2, 0.95, NULL, 1),
+(27, 96, 1, 1, 0.90, NULL, 2);
 
 -- --------------------------------------------------------
 
@@ -210,7 +231,12 @@ INSERT INTO `orders` (`order_id`, `basket_id`, `user_id`, `order_status`, `order
 (32, NULL, 2, 'Pending', '2024-03-24 03:45:40', '123 Main St, Anytown, USA', 0, NULL, '2024-03-24 03:45:40'),
 (53, NULL, 2, 'pending', '2024-03-24 13:45:16', '1234 Main St, Anytown, AN 12345', 0, NULL, '2024-03-24 13:45:16'),
 (54, NULL, 3, 'Pending', '2024-03-24 15:20:55', '123 Main St, Anytown, USA', 0, NULL, '2024-03-24 15:20:55'),
-(56, NULL, 3, 'Pending', '2024-03-24 15:21:07', '123 Main St, Anytown, USA', 0, NULL, '2024-03-24 15:21:07');
+(56, NULL, 3, 'Pending', '2024-03-24 15:21:07', '123 Main St, Anytown, USA', 0, NULL, '2024-03-24 15:21:07'),
+(75, NULL, 2, 'Processing', '2024-03-24 16:05:10', '1234 Main St, Anytown, AN 12345', 0, NULL, '2024-03-24 16:05:10'),
+(93, NULL, 1, 'Processing', '2024-03-24 16:24:37', '1234 Main St, Anytown, AN 12345', 0, NULL, '2024-03-24 16:24:37'),
+(94, NULL, 2, 'Processing', '2024-03-24 16:25:00', '1234 Main St, Anytown, AN 12345', 0, NULL, '2024-03-24 16:25:00'),
+(95, NULL, 2, 'Processing', '2024-03-24 16:34:26', '1234 Main St, Anytown, AN 12345', 0, NULL, '2024-03-24 16:34:26'),
+(96, NULL, 2, 'Processing', '2024-03-24 17:05:23', '1234 Main St, Anytown, AN 12345', 0, NULL, '2024-03-24 17:05:23');
 
 -- --------------------------------------------------------
 
@@ -375,8 +401,8 @@ CREATE TABLE `storeproducts` (
 --
 
 INSERT INTO `storeproducts` (`store_product_id`, `product_id`, `store_id`, `price`, `description`, `quantity`) VALUES
-(1, 1, 1, 0.95, 'Freshly picked, crunchy apples ideal for a nutritious snack or your baking delights. Sourced with care, exclusive to Tesco.', 80),
-(2, 2, 1, 1.20, 'Juicy pears, handpicked for their sweet flavor. Perfect for desserts or as a healthy snack. Only at Tesco.', 96),
+(1, 1, 1, 0.95, 'Freshly picked, crunchy apples ideal for a nutritious snack or your baking delights. Sourced with care, exclusive to Tesco.', 6),
+(2, 2, 1, 1.20, 'Juicy pears, handpicked for their sweet flavor. Perfect for desserts or as a healthy snack. Only at Tesco.', 9),
 (3, 3, 1, 0.89, 'Creamy 2% milk, sourced directly from local farms. Freshness and quality in every bottle. Tesco’s dairy best.', 100),
 (4, 4, 1, 2.50, 'Rich and flavorful cheddar cheese, aged perfectly to enhance your meals. Exclusively available at Tesco.', 100),
 (5, 5, 1, 0.70, 'Crunchy, fresh carrots, harvested for their sweetness. Ideal for cooking or as a raw snack. Freshness guaranteed by Tesco.', 100),
@@ -387,7 +413,7 @@ INSERT INTO `storeproducts` (`store_product_id`, `product_id`, `store_id`, `pric
 (10, 10, 1, 1.75, 'Fresh, juicy tomatoes, organically grown. Bursting with flavor, perfect for salads or cooking. Tesco’s farm to your table.', 100),
 (11, 11, 1, 3.00, 'Tender chicken breast, sourced from farms with high welfare standards. Perfect for healthy meals. Tesco’s fresh poultry.', 100),
 (12, 12, 1, 4.00, 'Lean ground beef, high in protein and flavor. Ideal for burgers and meatballs. Quality meat from Tesco.', 74),
-(13, 13, 1, 5.00, 'Wild-caught salmon, rich in Omega-3. Fresh, flavorful, and perfect for grilling. Tesco’s seafood selection.', 98),
+(13, 13, 1, 5.00, 'Wild-caught salmon, rich in Omega-3. Fresh, flavorful, and perfect for grilling. Tesco’s seafood selection.', 96),
 (14, 14, 1, 0.90, 'Earthy russet potatoes, versatile and flavorful. Ideal for baking, mashing, or roasting. Tesco’s quality produce.', 100),
 (15, 15, 1, 0.60, 'Crisp, yellow onions, a staple for any kitchen. Adds flavor to any dish. Hand-selected by Tesco.', 106),
 (16, 21, 1, 1.50, 'Premium basmati rice, with a delicate aroma and fluffy texture. Ideal for exotic dishes. Tesco brings the world to your kitchen.', 100),
@@ -400,7 +426,7 @@ INSERT INTO `storeproducts` (`store_product_id`, `product_id`, `store_id`, `pric
 (23, 18, 1, 1.50, 'Fine granulated sugar, perfect for baking or sweetening. Tesco’s sweet staple for your pantry.', 100),
 (24, 19, 1, 1.20, 'All-purpose flour, milled for consistency and quality. Your baking essential, from Tesco.', 100),
 (25, 20, 1, 0.50, 'Fresh oranges, bursting with vitamin C. Juicy and sweet, perfect for juicing. Freshly picked for Tesco customers.', 100),
-(26, 1, 2, 0.90, NULL, 100),
+(26, 1, 2, 0.90, NULL, 96),
 (27, 2, 2, 1.15, NULL, 99),
 (28, 3, 2, 0.85, NULL, 100),
 (29, 4, 2, 2.40, NULL, 100),
@@ -681,13 +707,13 @@ ALTER TABLE `membershiptypes`
 -- AUTO_INCREMENT for table `orderdetails`
 --
 ALTER TABLE `orderdetails`
-  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- AUTO_INCREMENT for table `product`
