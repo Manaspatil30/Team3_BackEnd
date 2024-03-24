@@ -728,6 +728,10 @@ ALTER TABLE `userregistration`
   ADD CONSTRAINT `userregistration_ibfk_1` FOREIGN KEY (`MembershipTypeID`) REFERENCES `membershiptypes` (`MembershipTypeID`);
 COMMIT;
 
+ALTER TABLE orderdetails
+ADD COLUMN store_id INT; -- Modify the data type according to your requirements
+
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
