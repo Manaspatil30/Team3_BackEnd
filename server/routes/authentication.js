@@ -31,6 +31,18 @@ router.get('/',(req,res)=>{
     })
 })
 
+router.get('/users',  (req, res) => {
+    const selectQuery = 'SELECT * FROM userregistration;';
+    db.query(selectQuery, (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+        res.json(result);
+      }
+    });
+  });
+
 router.get('/user/:id', authMiddleware,(req, res) => {
     const userId = req.params.id;
    const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload

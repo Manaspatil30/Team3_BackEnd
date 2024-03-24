@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 23, 2024 at 06:06 PM
+-- Generation Time: Mar 24, 2024 at 12:32 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -81,8 +81,7 @@ CREATE TABLE `basketitems` (
 --
 
 INSERT INTO `basketitems` (`basket_id`, `user_id`, `product_id`, `price`, `quantity`, `updated_at`, `store_id`) VALUES
-(9, 1, 1, 100.00, 4, '2024-03-23 17:00:28', 1),
-(12, 1, 2, 0.00, 7, '2024-03-23 17:00:28', 1);
+(13, 2, 2, 3.60, 3, '2024-03-23 17:11:52', 1);
 
 -- --------------------------------------------------------
 
@@ -117,7 +116,8 @@ CREATE TABLE `orderdetails` (
   `order_id` int(11) DEFAULT NULL,
   `store_product_id` int(11) DEFAULT NULL,
   `quantity` int(11) DEFAULT NULL,
-  `price_at_purchase` decimal(10,2) DEFAULT NULL
+  `price_at_purchase` decimal(10,2) DEFAULT NULL,
+  `product_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -594,7 +594,7 @@ ALTER TABLE `basket`
 -- AUTO_INCREMENT for table `basketitems`
 --
 ALTER TABLE `basketitems`
-  MODIFY `basket_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `basket_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `membershiptypes`
@@ -612,7 +612,7 @@ ALTER TABLE `orderdetails`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `product`
@@ -727,6 +727,10 @@ ALTER TABLE `stores`
 ALTER TABLE `userregistration`
   ADD CONSTRAINT `userregistration_ibfk_1` FOREIGN KEY (`MembershipTypeID`) REFERENCES `membershiptypes` (`MembershipTypeID`);
 COMMIT;
+
+ALTER TABLE orderdetails
+ADD COLUMN store_id INT; -- Modify the data type according to your requirements
+
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
