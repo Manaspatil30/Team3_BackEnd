@@ -14,6 +14,8 @@ import randomProductsRouter from './routes/randomProductsRouter.js'
 import Orders from './routes/Orders.js';
 import payment from "./routes/payment.js";
 import adminRoutes from'./routes/adminRoutes.js';
+import sales from './routes/sales.js';
+
 
 const app = express();
 app.use(express.json());
@@ -32,6 +34,7 @@ app.use('/', imageRoutes)
 app.use('/', searchRoutes)
 app.use('/api', randomProductsRouter);
 app.use('/', Orders);
+app.use('/', sales)
 
 
 app.use('/', payment)
