@@ -7,6 +7,17 @@ const router = express.Router();
 // Sales and Inventory Management Routes
 
 //Get admin
+router.get('/admins',  (req, res) => {
+  const selectQuery = 'SELECT * FROM userregistration Where status = "A";';
+  db.query(selectQuery, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.json(result);
+    }
+  });
+});
 
 // Get all products
 router.get('/adminproducts',  (req, res) => {
@@ -23,9 +34,9 @@ router.get('/adminproducts',  (req, res) => {
 
 // Add a new product
 router.post('/products',  (req, res) => {
-  const { product_name, description, category, quantity, best_before } = req.body;
-  const insertQuery = 'INSERT INTO product (product_name, description, category, quantity, best_before) VALUES (?, ?, ?, ?, ?)';
-  db.query(insertQuery, [product_name, description, category, quantity, best_before], (err, result) => {
+  const { product_name, description, category, quantity } = req.body;
+  const insertQuery = 'INSERT INTO product (product_name, description, category, quantity) VALUES (?, ?, ?, ?)';
+  db.query(insertQuery, [product_name, description, category, quantity], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).json({ error: 'Internal Server Error' });
