@@ -56,53 +56,65 @@ router.post('/orders/createe', (req, res) => {
           res.status(500).json({ error: 'Internal Server Error' });
       } else {
           const orderId = result.insertId;
-          
-          // Insert order details into the database
-          orderItems.forEach(item => {
-              const { storeProductId, quantity, storeId } = item;
 
-              // Fetch the price from storeproducts table
-              const getPriceQuery = `
-                  SELECT price FROM storeproducts WHERE store_product_id = ? AND store_id = ?
-              `;
-              db.query(getPriceQuery, [storeProductId, storeId], (errGetPrice, resultGetPrice) => {
-                  if (errGetPrice) {
-                      console.error(errGetPrice);
-                      res.status(500).json({ error: 'Internal Server Error' });
-                  } else {
-                      const priceAtPurchase = resultGetPrice[0].price;
+          // Delete the user's basket
+          const deleteBasketQuery = `
+              DELETE FROM basket WHERE basket_id = ?
+          `;
+          db.query(deleteBasketQuery, [basketId], (errDeleteBasket, resultDeleteBasket) => {
+              if (errDeleteBasket) {
+                  console.error(errDeleteBasket);
+                  res.status(500).json({ error: 'Internal Server Error' });
+              } else {
+                  // Insert order details into the database
+                  orderItems.forEach(item => {
+                      const { storeProductId, quantity, storeId } = item;
 
-                      const insertOrderDetailQuery = `
-                          INSERT INTO orderdetails (order_id, store_product_id, quantity, store_id, price_at_purchase)
-                          VALUES (?, ?, ?, ?, ?)
+                      // Fetch the price from storeproducts table
+                      const getPriceQuery = `
+                          SELECT price FROM storeproducts WHERE product_id = ? AND store_id = ?
                       `;
-                      db.query(insertOrderDetailQuery, [orderId, storeProductId, quantity, storeId, priceAtPurchase], (errInsertDetail, resultInsertDetail) => {
-                          if (errInsertDetail) {
-                              console.error(errInsertDetail);
+                      db.query(getPriceQuery, [storeProductId, storeId], (errGetPrice, resultGetPrice) => {
+                          if (errGetPrice) {
+                              console.error(errGetPrice);
                               res.status(500).json({ error: 'Internal Server Error' });
                           } else {
-                              // Update product quantity in storeproducts table
-                              const updateQuantityQuery = `
-                                  UPDATE storeproducts
-                                  SET quantity = quantity - ?
-                                  WHERE store_product_id = ? AND store_id = ?
+                              const priceAtPurchase = resultGetPrice[0].price;
+
+                              const insertOrderDetailQuery = `
+                                  INSERT INTO orderdetails (order_id, store_product_id, quantity, store_id, price_at_purchase)
+                                  VALUES (?, ?, ?, ?, ?)
                               `;
-                              db.query(updateQuantityQuery, [quantity, storeProductId, storeId], (errUpdate, resultUpdate) => {
-                                  if (errUpdate) {
-                                      console.error(errUpdate);
+                              db.query(insertOrderDetailQuery, [orderId, storeProductId, quantity, storeId, priceAtPurchase], (errInsertDetail, resultInsertDetail) => {
+                                  if (errInsertDetail) {
+                                      console.error(errInsertDetail);
                                       res.status(500).json({ error: 'Internal Server Error' });
+                                  } else {
+                                      // Update product quantity in storeproducts table
+                                      const updateQuantityQuery = `
+                                          UPDATE storeproducts
+                                          SET quantity = quantity - ?
+                                          WHERE store_product_id = ? AND store_id = ?
+                                      `;
+                                      db.query(updateQuantityQuery, [quantity, storeProductId, storeId], (errUpdate, resultUpdate) => {
+                                          if (errUpdate) {
+                                              console.error(errUpdate);
+                                              res.status(500).json({ error: 'Internal Server Error' });
+                                          }
+                                      });
                                   }
                               });
                           }
                       });
-                  }
-              });
-          });
+                  });
 
-          res.status(201).json({ message: 'Order placed successfully', orderId });
+                  res.status(201).json({ message: 'Order placed successfully', orderId });
+              }
+          });
       }
   });
 });
+
 
 
 
