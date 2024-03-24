@@ -3,44 +3,44 @@ import db from '../config/db.js';
 
 const router = express.Router();
 
-// Route to create a new order
-router.post('/orders/create', (req, res) => {
-    // Extract data from request body
-    const { basketId, userId, orderStatus, deliveryAddress, orderItems } = req.body;
+// // Route to create a new order
+// router.post('/orders/create', (req, res) => {
+//     // Extract data from request body
+//     const { basketId, userId, orderStatus, deliveryAddress, orderItems } = req.body;
 
-    // Insert new order into the database
-    const insertOrderQuery = `
-        INSERT INTO orders (basket_id, user_id, order_status, delivery_address)
-        VALUES (?, ?, ?, ?)
-    `;
-    db.query(insertOrderQuery, [basketId, userId, orderStatus, deliveryAddress], (err, result) => {
-        if (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-            const orderId = result.insertId;
+//     // Insert new order into the database
+//     const insertOrderQuery = `
+//         INSERT INTO orders (basket_id, user_id, order_status, delivery_address)
+//         VALUES (?, ?, ?, ?)
+//     `;
+//     db.query(insertOrderQuery, [basketId, userId, orderStatus, deliveryAddress], (err, result) => {
+//         if (err) {
+//             console.error(err);
+//             res.status(500).json({ error: 'Internal Server Error' });
+//         } else {
+//             const orderId = result.insertId;
             
-            // Iterate through orderItems to update product quantities
-            orderItems.forEach(item => {
-                const { storeProductId, quantity } = item;
-                // Update quantity in storeproducts table
-                const updateQuantityQuery = `
-                    UPDATE storeproducts
-                    SET quantity = quantity - ?
-                    WHERE store_product_id = ?
-                `;
-                db.query(updateQuantityQuery, [quantity, storeProductId], (errUpdate, resultUpdate) => {
-                    if (errUpdate) {
-                        console.error(errUpdate);
-                        res.status(500).json({ error: 'Internal Server Error' });
-                    }
-                });
-            });
+//             // Iterate through orderItems to update product quantities
+//             orderItems.forEach(item => {
+//                 const { storeProductId, quantity } = item;
+//                 // Update quantity in storeproducts table
+//                 const updateQuantityQuery = `
+//                     UPDATE storeproducts
+//                     SET quantity = quantity - ?
+//                     WHERE store_product_id = ?
+//                 `;
+//                 db.query(updateQuantityQuery, [quantity, storeProductId], (errUpdate, resultUpdate) => {
+//                     if (errUpdate) {
+//                         console.error(errUpdate);
+//                         res.status(500).json({ error: 'Internal Server Error' });
+//                     }
+//                 });
+//             });
 
-            res.status(201).json({ message: 'Order placed successfully', orderId });
-        }
-    });
-});
+//             res.status(201).json({ message: 'Order placed successfully', orderId });
+//         }
+//     });
+// });
 
 
 
@@ -145,23 +145,65 @@ router.get('/orders', (req, res) => {
   });
 });
 
-// Fetch a specific order by ID
-router.get('/orders/:orderId', (req, res) => {
-  const { orderId } = req.params;
-  const selectOrderQuery = `SELECT * FROM orders WHERE order_id = ?`;
-  db.query(selectOrderQuery, [orderId], (err, result) => {
-      if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Internal Server Error' });
+
+
+
+// Assuming your user table has an identifier like `user_id` and is linked to the orders table
+
+// Route to get orders by a specific user
+router.get('/orders/by-user/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  // Revised SQL query that reflects the new database structure
+  const query = `
+    SELECT o.order_id, o.order_date, o.order_status, 
+           od.order_detail_id, od.quantity, od.price_at_purchase,
+           sp.store_id, s.store_name, -- Include store information
+           p.product_id, p.product_name
+    FROM orders o
+    JOIN orderdetails od ON o.order_id = od.order_id
+    JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
+    JOIN product p ON sp.product_id = p.product_id
+    LEFT JOIN stores s ON sp.store_id = s.store_id -- Optional: if you want the store name
+    WHERE o.user_id = ?
+    ORDER BY o.order_date DESC, od.order_detail_id ASC
+  `;
+
+  // Execute the query
+  db.query(query, [userId], (err, ordersDetails) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    // Format the response
+    const formattedOrders = ordersDetails.reduce((acc, detail) => {
+      if (!acc[detail.order_id]) {
+        acc[detail.order_id] = {
+          orderId: detail.order_id,
+          orderDate: detail.order_date,
+          status: detail.order_status,
+          storeId: detail.store_id, // Store information added
+          storeName: detail.store_name, // Store name added (if you included the store in the query)
+          orderDetails: []
+        };
       }
-      if (result.length === 0) {
-          return res.status(404).json({ message: 'Order not found' });
-      }
-      res.status(200).json(result[0]);
+      acc[detail.order_id].orderDetails.push({
+        detailId: detail.order_detail_id,
+        productId: detail.product_id,
+        productName: detail.product_name,
+        quantity: detail.quantity,
+        priceAtPurchase: detail.price_at_purchase
+        // Note: store information is linked at the order level in this format
+        // If each item could potentially come from a different store,
+        // you might want to include storeId and storeName here instead.
+      });
+      return acc;
+    }, {});
+
+    res.json(Object.values(formattedOrders));
   });
 });
-
-
 
 
 // Update an order

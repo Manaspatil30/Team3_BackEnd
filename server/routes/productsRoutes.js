@@ -6,21 +6,22 @@ const router = express.Router();
 //Admin
 
 router.post('/product/add', (req, res) => {
-    const { product_name, description, category, quantity, best_before, image_url, store_id } = req.body;
+    const { product_name, description, category, quantity, store_id, price } = req.body;
 
     // Insert into Product table
-    const insertProductQuery = "INSERT INTO Product (product_name, description, category, quantity, best_before, image_url) VALUES (?, ?, ?, ?, ?, ?)";
-    db.query(insertProductQuery, [product_name, description, category, quantity, best_before, image_url], (err, result) => {
+    const insertProductQuery = "INSERT INTO product (product_name, description, category) VALUES (?, ?, ?)";
+    db.query(insertProductQuery, [product_name, description, category], (err, result) => {
         if (err) {
             console.log(err);
             return res.status(500).send("Failed to add product");
         }
 
+        console.log(result) 
         const productId = result.insertId;
 
         // Insert into StoreProducts table
-        const insertStoreProductQuery = "INSERT INTO StoreProducts (product_id, store_id, price) VALUES (?, ?, ?)";
-        db.query(insertStoreProductQuery, [productId, store_id, 0], (err, result) => {
+        const insertStoreProductQuery = "INSERT INTO storeproducts ( product_id, store_id, price, quantity) VALUES (?, ?, ?, ?)";
+        db.query(insertStoreProductQuery, [productId, store_id, price, quantity], (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(500).send("Failed to add product to store");
