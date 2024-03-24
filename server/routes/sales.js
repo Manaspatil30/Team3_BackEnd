@@ -107,7 +107,6 @@ router.get('/stores/revenue/category', async (req, res) => {
 
 // Query Functions
 const getTotalSales = async (timePeriod) => {
-    // Example SQL query - adjust according to your schema
     const query = `
       SELECT SUM(od.quantity * od.price_at_purchase) AS total_sales
       FROM orders o
@@ -117,11 +116,7 @@ const getTotalSales = async (timePeriod) => {
     const [startDate, endDate] = getDateRange(timePeriod);
   
     try {
-      // Execute the query
       const [results] = await db.query(query, [startDate, endDate]);
-  
-      // Assuming 'results' contains an array of rows
-      // Check if there's at least one result and return the total_sales of the first row
       if (results.length > 0) {
         return results[0].total_sales || 0;
       } else {
@@ -129,60 +124,77 @@ const getTotalSales = async (timePeriod) => {
       }
     } catch (err) {
       console.error(err);
-      throw err; // Rethrow the error or handle it as needed
+      throw err;
     }
   };
   
 
-const getSalesByCategory = async (timePeriod, category) => {
-  const query = `
-    SELECT p.category, SUM(od.quantity * od.price_at_purchase) AS total_sales
-    FROM orders o
-    JOIN orderdetails od ON o.order_id = od.order_id
-    JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
-    JOIN product p ON sp.product_id = p.product_id
-    WHERE o.order_date BETWEEN ? AND ?
-      AND p.category = ?
-    GROUP BY p.category
-  `;
-  const [startDate, endDate] = getDateRange(timePeriod);
-  const [results] = await db.query(query, [startDate, endDate, category]);
-  return results;
-};
+  const getSalesByCategory = async (timePeriod, category) => {
+    const query = `
+      SELECT p.category, SUM(od.quantity * od.price_at_purchase) AS total_sales
+      FROM orders o
+      JOIN orderdetails od ON o.order_id = od.order_id
+      JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
+      JOIN product p ON sp.product_id = p.product_id
+      WHERE o.order_date BETWEEN ? AND ?
+        AND p.category = ?
+      GROUP BY p.category
+    `;
+    const [startDate, endDate] = getDateRange(timePeriod);
+    try {
+      const [results] = await db.query(query, [startDate, endDate, category]);
+      return results;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+  
 
-const getSalesByStore = async (timePeriod, store) => {
-  const query = `
-    SELECT s.store_name, SUM(od.quantity * od.price_at_purchase) AS total_sales
-    FROM orders o
-    JOIN orderdetails od ON o.order_id = od.order_id
-    JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
-    JOIN stores s ON sp.store_id = s.store_id
-    WHERE o.order_date BETWEEN ? AND ?
-      AND s.store_id = ?
-    GROUP BY s.store_id
-  `;
-  const [startDate, endDate] = getDateRange(timePeriod);
-  const [results] = await db.query(query, [startDate, endDate, store]);
-  return results;
-};
+  const getSalesByStore = async (timePeriod, store) => {
+    const query = `
+      SELECT s.store_name, SUM(od.quantity * od.price_at_purchase) AS total_sales
+      FROM orders o
+      JOIN orderdetails od ON o.order_id = od.order_id
+      JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
+      JOIN stores s ON sp.store_id = s.store_id
+      WHERE o.order_date BETWEEN ? AND ?
+        AND s.store_id = ?
+      GROUP BY s.store_id
+    `;
+    const [startDate, endDate] = getDateRange(timePeriod);
+    try {
+      const [results] = await db.query(query, [startDate, endDate, store]);
+      return results;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+  
 
 const getPopularProducts = async (timePeriod) => {
-  const query = `
-    SELECT p.product_name, COUNT(*) AS views
-    FROM product p
-    JOIN storeproducts sp ON p.product_id = sp.product_id
-    JOIN orderdetails od ON sp.store_product_id = od.store_product_id
-    JOIN orders o ON od.order_id = o.order_id
-    WHERE o.order_date BETWEEN ? AND ?
-    GROUP BY p.product_id
-    ORDER BY views DESC
-    LIMIT 10
-  `;
-  const [startDate, endDate] = getDateRange(timePeriod);
-  const [results] = await db.query(query, [startDate, endDate]);
-  return results;
-};
-
+    const query = `
+      SELECT p.product_id, p.product_name, COUNT(*) AS views
+      FROM product p
+      JOIN storeproducts sp ON p.product_id = sp.product_id
+      JOIN orderdetails od ON sp.store_product_id = od.store_product_id
+      JOIN orders o ON od.order_id = o.order_id
+      WHERE o.order_date BETWEEN ? AND ?
+      GROUP BY p.product_id
+      ORDER BY views DESC
+      LIMIT 10
+    `;
+    const [startDate, endDate] = getDateRange(timePeriod);
+    try {
+      const [results] = await db.query(query, [startDate, endDate]);
+      return results;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+  
 const getBestSellingProducts = async (timePeriod) => {
   const query = `
     SELECT p.product_name, SUM(od.quantity) AS total_quantity
@@ -201,75 +213,91 @@ const getBestSellingProducts = async (timePeriod) => {
 };
 
 const getInventoryLevels = async (timePeriod, category) => {
-  const query = `
-    SELECT p.product_name, SUM(sp.quantity) AS inventory
-    FROM product p
-    JOIN storeproducts sp ON p.product_id = sp.product_id
-    JOIN orderdetails od ON sp.store_product_id = od.store_product_id
-    JOIN orders o ON od.order_id = o.order_id
-    WHERE o.order_date BETWEEN ? AND ?
-      AND p.category = ?
-    GROUP BY p.product_id
-    ORDER BY inventory DESC
-    LIMIT 10
-  `;
-  const [startDate, endDate] = getDateRange(timePeriod);
-  const [results] = await db.query(query, [startDate, endDate, category]);
-  return results;
-};
+    const query = `
+      SELECT p.product_name, sp.quantity AS inventory
+      FROM product p
+      JOIN storeproducts sp ON p.product_id = sp.product_id
+      WHERE p.category = ?
+      ORDER BY sp.quantity DESC
+      LIMIT 10
+    `;
+    // Note: This function does not utilize timePeriod since inventory levels are current, not historical.
+    try {
+      const [results] = await db.query(query, [category]);
+      return results;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+  
 
-const getRevenueOverTime = async (timePeriod, store) => {
-  const query = `
-    SELECT DATE_FORMAT(o.order_date, '%Y-%m-%d') AS date, SUM(od.quantity * od.price_at_purchase) AS revenue
-    FROM orders o
-    JOIN orderdetails od ON o.order_id = od.order_id
-    JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
-    JOIN stores s ON sp.store_id = s.store_id
-    WHERE o.order_date BETWEEN ? AND ?
-      AND s.store_id = ?
-    GROUP BY date
-    ORDER BY date
-  `;
-  const [startDate, endDate] = getDateRange(timePeriod);
-  const [results] = await db.query(query, [startDate, endDate, store]);
-  return results;
-};
+  const getRevenueOverTime = async (timePeriod, store) => {
+    const query = `
+      SELECT DATE_FORMAT(o.order_date, '%Y-%m-%d') AS date, SUM(od.quantity * od.price_at_purchase) AS revenue
+      FROM orders o
+      JOIN orderdetails od ON o.order_id = od.order_id
+      JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
+      JOIN stores s ON sp.store_id = s.store_id
+      WHERE o.order_date BETWEEN ? AND ?
+        AND s.store_id = ?
+      GROUP BY DATE_FORMAT(o.order_date, '%Y-%m-%d')
+      ORDER BY date
+    `;
+    const [startDate, endDate] = getDateRange(timePeriod);
+    try {
+      const [results] = await db.query(query, [startDate, endDate, store]);
+      return results;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+  
 
-const getRefundsOverTime = async (timePeriod, store) => {
-  const query = `
-    SELECT DATE_FORMAT(o.updated_at, '%Y-%m-%d') AS date, COUNT(*) AS refunds
-    FROM orders o
-    JOIN orderdetails od ON o.order_id = od.order_id
-    JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
-    JOIN stores s ON sp.store_id = s.store_id
-    WHERE o.updated_at BETWEEN ? AND ?
-      AND o.returned = 1
-      AND s.store_id = ?
-    GROUP BY date
-    ORDER BY date
-  `;
-  const [startDate, endDate] = getDateRange(timePeriod);
-  const [results] = await db.query(query, [startDate, endDate, store]);
-  return results;
-};
-
-const getRevenueByCategory = async (timePeriod, category, store) => {
-  const query = `
-    SELECT p.category, SUM(od.quantity * od.price_at_purchase) AS revenue
-    FROM orders o
-    JOIN orderdetails od ON o.order_id = od.order_id
-    JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
-    JOIN product p ON sp.product_id = p.product_id
-    JOIN stores s ON sp.store_id = s.store_id
-    WHERE o.order_date BETWEEN ? AND ?
-      AND p.category = ?
-      AND s.store_id = ?
-    GROUP BY p.category
-  `;
-  const [startDate, endDate] = getDateRange(timePeriod);
-  const [results] = await db.query(query, [startDate, endDate, category, store]);
-  return results;
-};
+  const getRefundsOverTime = async (timePeriod, store) => {
+    const query = `
+      SELECT DATE_FORMAT(o.updated_at, '%Y-%m-%d') AS date, COUNT(*) AS refunds
+      FROM orders o
+      WHERE o.updated_at BETWEEN ? AND ?
+        AND o.returned = 1
+        AND o.store_id = ?
+      GROUP BY DATE_FORMAT(o.updated_at, '%Y-%m-%d')
+      ORDER BY date
+    `;
+    const [startDate, endDate] = getDateRange(timePeriod);
+    try {
+      const [results] = await db.query(query, [startDate, endDate, store]);
+      return results;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+  
+  const getRevenueByCategory = async (timePeriod, category, store) => {
+    const query = `
+      SELECT p.category, SUM(od.quantity * od.price_at_purchase) AS revenue
+      FROM orders o
+      JOIN orderdetails od ON o.order_id = od.order_id
+      JOIN storeproducts sp ON od.store_product_id = sp.store_product_id
+      JOIN product p ON sp.product_id = p.product_id
+      JOIN stores s ON sp.store_id = s.store_id
+      WHERE o.order_date BETWEEN ? AND ?
+        AND p.category = ?
+        AND s.store_id = ?
+      GROUP BY p.category
+    `;
+    const [startDate, endDate] = getDateRange(timePeriod);
+    try {
+      const [results] = await db.query(query, [startDate, endDate, category, store]);
+      return results;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+  
 
 const getDateRange = (timePeriod) => {
   const today = new Date();

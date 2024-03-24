@@ -3,44 +3,44 @@ import db from '../config/db.js';
 
 const router = express.Router();
 
-// Route to create a new order
-router.post('/orders/create', (req, res) => {
-    // Extract data from request body
-    const { basketId, userId, orderStatus, deliveryAddress, orderItems } = req.body;
+// // Route to create a new order
+// router.post('/orders/create', (req, res) => {
+//     // Extract data from request body
+//     const { basketId, userId, orderStatus, deliveryAddress, orderItems } = req.body;
 
-    // Insert new order into the database
-    const insertOrderQuery = `
-        INSERT INTO orders (basket_id, user_id, order_status, delivery_address)
-        VALUES (?, ?, ?, ?)
-    `;
-    db.query(insertOrderQuery, [basketId, userId, orderStatus, deliveryAddress], (err, result) => {
-        if (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-            const orderId = result.insertId;
+//     // Insert new order into the database
+//     const insertOrderQuery = `
+//         INSERT INTO orders (basket_id, user_id, order_status, delivery_address)
+//         VALUES (?, ?, ?, ?)
+//     `;
+//     db.query(insertOrderQuery, [basketId, userId, orderStatus, deliveryAddress], (err, result) => {
+//         if (err) {
+//             console.error(err);
+//             res.status(500).json({ error: 'Internal Server Error' });
+//         } else {
+//             const orderId = result.insertId;
             
-            // Iterate through orderItems to update product quantities
-            orderItems.forEach(item => {
-                const { storeProductId, quantity } = item;
-                // Update quantity in storeproducts table
-                const updateQuantityQuery = `
-                    UPDATE storeproducts
-                    SET quantity = quantity - ?
-                    WHERE store_product_id = ?
-                `;
-                db.query(updateQuantityQuery, [quantity, storeProductId], (errUpdate, resultUpdate) => {
-                    if (errUpdate) {
-                        console.error(errUpdate);
-                        res.status(500).json({ error: 'Internal Server Error' });
-                    }
-                });
-            });
+//             // Iterate through orderItems to update product quantities
+//             orderItems.forEach(item => {
+//                 const { storeProductId, quantity } = item;
+//                 // Update quantity in storeproducts table
+//                 const updateQuantityQuery = `
+//                     UPDATE storeproducts
+//                     SET quantity = quantity - ?
+//                     WHERE store_product_id = ?
+//                 `;
+//                 db.query(updateQuantityQuery, [quantity, storeProductId], (errUpdate, resultUpdate) => {
+//                     if (errUpdate) {
+//                         console.error(errUpdate);
+//                         res.status(500).json({ error: 'Internal Server Error' });
+//                     }
+//                 });
+//             });
 
-            res.status(201).json({ message: 'Order placed successfully', orderId });
-        }
-    });
-});
+//             res.status(201).json({ message: 'Order placed successfully', orderId });
+//         }
+//     });
+// });
 
 
 
@@ -204,44 +204,6 @@ router.get('/orders/by-user/:userId', (req, res) => {
     res.json(Object.values(formattedOrders));
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Fetch a specific order by ID
-router.get('/orders/:orderId', (req, res) => {
-  const { orderId } = req.params;
-  const selectOrderQuery = `SELECT * FROM orders WHERE order_id = ?`;
-  db.query(selectOrderQuery, [orderId], (err, result) => {
-      if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Internal Server Error' });
-      }
-      if (result.length === 0) {
-          return res.status(404).json({ message: 'Order not found' });
-      }
-      res.status(200).json(result[0]);
-  });
-});
-
-
 
 
 // Update an order
