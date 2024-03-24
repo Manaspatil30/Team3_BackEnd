@@ -15,6 +15,7 @@ import Orders from './routes/Orders.js';
 import payment from "./routes/payment.js";
 import adminRoutes from'./routes/adminRoutes.js';
 import sales from './routes/sales.js';
+import stock from './routes/stock.js';
 
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/', searchRoutes)
 app.use('/api', randomProductsRouter);
 app.use('/', Orders);
 app.use('/', sales)
+app.use('/', stock)
 
 
 app.use('/', payment)
