@@ -8,7 +8,7 @@ router.get('/random-products', async (req, res) => {
     const numberOfProducts = 3; // Changed from 5 to 3
 
     const selectRandomProductsQuery = `
-        SELECT * FROM Product
+        SELECT * FROM product
         ORDER BY RAND() 
         LIMIT ?
     `;
