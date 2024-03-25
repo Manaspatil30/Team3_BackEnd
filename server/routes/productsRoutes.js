@@ -249,7 +249,7 @@ router.get('/productWithStores/:productId', (req, res) => {
   
     // Query to get product information
     const productQuery = `
-      SELECT p.product_id, p.product_name, p.description, p.category, sp.quantity
+      SELECT p.*
       FROM product p
       JOIN storeproducts sp ON p.product_id = sp.product_id
       WHERE p.product_id = ?
@@ -270,7 +270,6 @@ router.get('/productWithStores/:productId', (req, res) => {
       // If the product is found, execute the store query
       if (productResult.length > 0) {
         const product = productResult[0];
-  
         db.query(storeQuery, [productId], (err, storeResult) => {
             // console.log(productResult)
           if (err) throw err;
@@ -279,13 +278,15 @@ router.get('/productWithStores/:productId', (req, res) => {
             product_id: product.product_id,
             productname: product.product_name,
             description: product.description,
+            image_url_tesco : product.image_url_tesco,
+            image_url_aldi : product.image_url_aldi,
+            image_url_lidl : product.image_url_lidl,
             category: product.category,
             quantity: product.quantity,
             storeName: store.store_name,
             price: store.price,
             store_id : store.store_id
           }));
-          console.log(response)
           res.json(response);
         });
       } else {
