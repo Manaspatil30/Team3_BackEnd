@@ -38,7 +38,7 @@ router.post('/product/add', (req, res) => {
 router.put('/product/update/:id', (req, res) => {
     const productId = req.params.id;
     const { product_name, description, category, quantity, best_before } = req.body;
-    const updateQuery = "UPDATE Product SET product_name = ?, description = ?, category = ?, quantity = ?, best_before = ? WHERE product_id = ?";
+    const updateQuery = "UPDATE product SET product_name = ?, description = ?, category = ?, quantity = ?, best_before = ? WHERE product_id = ?";
     db.query(updateQuery, [product_name, description, category, quantity, best_before, productId], (err, result) => {
         if (err) {
             console.log(err);
@@ -64,7 +64,7 @@ router.get('/products', (req, res) => {
 
 router.delete('/product/delete/:id', (req, res) => {
     const productId = req.params.id;
-    const deleteQuery = "DELETE FROM Product WHERE product_id = ?";
+    const deleteQuery = "DELETE FROM product WHERE product_id = ?";
     db.query(deleteQuery, [productId], (err, result) => {
         if (err) {
             console.log(err);
@@ -78,7 +78,7 @@ router.delete('/product/delete/:id', (req, res) => {
 
 router.post('/storeproduct/add', (req, res) => {
     const { product_id, store_id, price } = req.body;
-    const insertQuery = "INSERT INTO StoreProducts (product_id, store_id, price) VALUES (?, ?, ?)";
+    const insertQuery = "INSERT INTO storeproducts (product_id, store_id, price) VALUES (?, ?, ?)";
     db.query(insertQuery, [product_id, store_id, price], (err, result) => {
         if (err) {
             console.log(err);
@@ -93,7 +93,7 @@ router.post('/storeproduct/add', (req, res) => {
 router.put('/storeproduct/update/:id', (req, res) => {
     const storeProductId = req.params.id;
     const { price } = req.body; // Assuming you might want to update the price
-    const updateQuery = "UPDATE StoreProducts SET price = ? WHERE store_product_id = ?";
+    const updateQuery = "UPDATE storeproducts SET price = ? WHERE store_product_id = ?";
     db.query(updateQuery, [price, storeProductId], (err, result) => {
         if (err) {
             console.log(err);
@@ -107,7 +107,7 @@ router.put('/storeproduct/update/:id', (req, res) => {
 
 router.get('/storeproducts/:store_id', (req, res) => {
     const storeId = req.params.store_id;
-    const selectQuery = "SELECT p.*, sp.price, sp.store_product_id FROM StoreProducts sp JOIN Product p ON sp.product_id = p.product_id WHERE sp.store_id = ?";
+    const selectQuery = "SELECT p.*, sp.price, sp.store_product_id FROM StoreProducts sp JOIN product p ON sp.product_id = p.product_id WHERE sp.store_id = ?";
     db.query(selectQuery, [storeId], (err, results) => {
         if (err) {
             console.log(err);
@@ -121,7 +121,7 @@ router.get('/storeproducts/:store_id', (req, res) => {
 
 router.delete('/storeproduct/delete/:id', (req, res) => {
     const storeProductId = req.params.id;
-    const deleteQuery = "DELETE FROM StoreProducts WHERE store_product_id = ?";
+    const deleteQuery = "DELETE FROM storeproducts WHERE store_product_id = ?";
     db.query(deleteQuery, [storeProductId], (err, result) => {
         if (err) {
             console.log(err);
@@ -193,7 +193,7 @@ router.put('/customer/update/:id', (req, res) => {
 router.put('/inventory/update/:productId', (req, res) => {
     const productId = req.params.productId;
     const { stock } = req.body; // This is the new stock level
-    const query = "UPDATE Product SET quantity = ? WHERE product_id = ?";
+    const query = "UPDATE product SET quantity = ? WHERE product_id = ?";
     db.query(query, [stock, productId], (err, result) => {
         if (err) {
             console.log(err);
@@ -223,8 +223,8 @@ router.get('/product/price/:productId/:storeId', (req, res) => {
   
     const query = `
       SELECT p.product_name, sp.price
-      FROM StoreProducts sp
-      JOIN Product p ON sp.product_id = p.product_id
+      FROM storeproducts sp
+      JOIN product p ON sp.product_id = p.product_id
       WHERE sp.product_id = ? AND sp.store_id = ?;
     `;
   
