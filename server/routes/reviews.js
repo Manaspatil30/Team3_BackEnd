@@ -35,7 +35,7 @@ router.post('/product/review/:productId', (req, res) => {
 
 // Get all reviews for a product
 router.get('/product/reviews/:productId', (req, res) => {
-    const query = "SELECT * FROM Reviews WHERE product_id = ? ORDER BY created_at DESC";
+    const query = "SELECT * FROM product_reviews WHERE product_id = ? ORDER BY created_at DESC";
 
     db.query(query, [req.params.productId], (err, results) => {
         if (err) return res.status(500).send("Failed to retrieve reviews");
@@ -45,7 +45,7 @@ router.get('/product/reviews/:productId', (req, res) => {
 
 // Get average rating for a product
 router.get('/product/:productId/average-rating', (req, res) => {
-    const query = "SELECT AVG(rating) AS averageRating FROM Reviews WHERE product_id = ?";
+    const query = "SELECT AVG(rating) AS averageRating FROM product_reviews WHERE product_id = ?";
 
     db.query(query, [req.params.productId], (err, results) => {
         if (err) return res.status(500).send("Failed to retrieve average rating");
@@ -55,7 +55,7 @@ router.get('/product/:productId/average-rating', (req, res) => {
 
 // Get reviews for a product filtered by rating
 router.get('/product/:productId/reviews/:stars', (req, res) => {
-    const query = "SELECT * FROM Reviews WHERE product_id = ? AND rating = ? ORDER BY created_at DESC";
+    const query = "SELECT * FROM product_reviews WHERE product_id = ? AND rating = ? ORDER BY created_at DESC";
 
     db.query(query, [req.params.productId, req.params.stars], (err, results) => {
         if (err) return res.status(500).send("Failed to retrieve reviews");
