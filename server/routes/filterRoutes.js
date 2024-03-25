@@ -17,7 +17,7 @@ router.get('/products/category/:categories', (req, res) => {
   }
 
   const placeholders = categoriesArray.map(() => '?').join(',');
-  const selectQuery = `SELECT p.*, sp.store_id FROM Product p INNER JOIN storeproducts sp ON p.product_id = sp.product_id WHERE p.category IN (${placeholders})`;
+  const selectQuery = `SELECT p.*, sp.store_id, sp.price FROM Product p INNER JOIN storeproducts sp ON p.product_id = sp.product_id WHERE p.category IN (${placeholders})`;
 
   db.query(selectQuery, categoriesArray, (err, results) => {
     if (err) {
@@ -54,8 +54,8 @@ router.get('/products/highest-to-lowest', (req, res) => {
 });
 
 // filter product ratings by star
-router.get('/products/rating', (req, res) => {
-  const minRating = parseInt(req.body.minRating)
+router.get('/products/rating/:minRating', (req, res) => {
+  const minRating = parseInt(req.params.minRating)
 
   if (isNaN(minRating) || minRating < 1 || minRating > 5) {
     return res.status(400).json({ error: 'Invalid rating value' });
@@ -64,11 +64,12 @@ router.get('/products/rating', (req, res) => {
   const maxRating = minRating + 1;
 
   const selectQuery = `
-  SELECT p.*, AVG(pr.rating) AS average_rating
-  FROM product p
-  LEFT JOIN product_ratings pr ON p.product_id = pr.product_id
-  GROUP BY p.product_id
-  HAVING AVG(pr.rating) >= ? AND AVG(pr.rating) < ?
+  SELECT p.*, AVG(pr.rating) AS average_rating, sp.price
+FROM product p
+LEFT JOIN product_ratings pr ON p.product_id = pr.product_id
+LEFT JOIN storeproducts sp ON p.product_id = sp.product_id
+GROUP BY p.product_id, sp.store_product_id
+HAVING AVG(pr.rating) >= ? AND AVG(pr.rating) < ?
   `;
 
   db.query(selectQuery, [minRating, maxRating], (err, results) => {
@@ -76,7 +77,6 @@ router.get('/products/rating', (req, res) => {
       console.error(err);
       return res.status(500).send('Failed to fetch products by rating');
     }
-
     res.json(results);
   });
 });
