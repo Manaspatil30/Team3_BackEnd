@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/products/search', (req, res) => {
     const { search } = req.query; 
-    const searchQuery = "SELECT * FROM Product WHERE product_name LIKE ?";
+    const searchQuery = "SELECT * FROM product WHERE product_name LIKE ?";
     db.query(searchQuery, [`%${search}%`], (err, results) => {
         if (err) {
             console.error(err);

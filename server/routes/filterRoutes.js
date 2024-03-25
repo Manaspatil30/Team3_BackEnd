@@ -17,7 +17,7 @@ router.get('/products/category/:categories', (req, res) => {
   }
 
   const placeholders = categoriesArray.map(() => '?').join(',');
-  const selectQuery = `SELECT p.*, sp.store_id, sp.price FROM Product p INNER JOIN storeproducts sp ON p.product_id = sp.product_id WHERE p.category IN (${placeholders})`;
+  const selectQuery = `SELECT p.*, sp.store_id, sp.price FROM product p INNER JOIN storeproducts sp ON p.product_id = sp.product_id WHERE p.category IN (${placeholders})`;
 
   db.query(selectQuery, categoriesArray, (err, results) => {
     if (err) {
