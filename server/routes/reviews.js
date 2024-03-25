@@ -4,15 +4,18 @@ import db from "../config/db.js";
 const router = express.Router();
 
 // Add or update a review for a product
-router.post('/product/:productId/review', (req, res) => {
+router.post('/product/review/:productId', (req, res) => {
     const { user_id, rating, review_text } = req.body;
     const product_id = req.params.productId;
-    const findQuery = "SELECT * FROM Reviews WHERE product_id = ? AND user_id = ?";
-    const insertQuery = "INSERT INTO Reviews (product_id, user_id, rating, review_text) VALUES (?, ?, ?, ?)";
-    const updateQuery = "UPDATE Reviews SET rating = ?, review_text = ? WHERE product_id = ? AND user_id = ?";
+    const findQuery = "SELECT * FROM product_ratings WHERE product_id = ? AND user_id = ?";
+    const insertQuery = "INSERT INTO product_ratings (product_id, user_id, rating, review_text) VALUES (?, ?, ?, ?)";
+    const updateQuery = "UPDATE product_ratings SET rating = ?, review_text = ? WHERE product_id = ? AND user_id = ?";
 
     db.query(findQuery, [product_id, user_id], (err, results) => {
-        if (err) return res.status(500).send("Failed to process request");
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Failed to process request");
+        }
 
         if (results.length > 0) {
             // Review exists, update it
@@ -31,7 +34,7 @@ router.post('/product/:productId/review', (req, res) => {
 });
 
 // Get all reviews for a product
-router.get('/product/:productId/reviews', (req, res) => {
+router.get('/product/reviews/:productId', (req, res) => {
     const query = "SELECT * FROM Reviews WHERE product_id = ? ORDER BY created_at DESC";
 
     db.query(query, [req.params.productId], (err, results) => {
