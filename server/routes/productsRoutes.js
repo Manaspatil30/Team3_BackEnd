@@ -282,7 +282,7 @@ router.get('/productWithStores/:productId', (req, res) => {
             image_url_aldi : product.image_url_aldi,
             image_url_lidl : product.image_url_lidl,
             category: product.category,
-            quantity: product.quantity,
+            quantity: store.quantity,
             storeName: store.store_name,
             price: store.price,
             store_id : store.store_id
@@ -295,5 +295,34 @@ router.get('/productWithStores/:productId', (req, res) => {
       }
     });
   });
+  router.put('/product/:productId/:storeId/updateStock', (req, res) => {
+    const productId = req.params.productId;
+    const storeId=req.params.storeId;
+    const { newQuantity } = req.body;
+
+    // Check if the product exists before updating the stock
+    const checkProductQuery = "SELECT * FROM storeproducts WHERE product_id = ? AND store_id=?";
+    db.query(checkProductQuery, [productId,storeId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        // Update the stock quantity of the product
+        const updateStockQuery = "UPDATE storeproducts SET quantity = ? WHERE product_id = ? AND store_id=?";
+        db.query(updateStockQuery, [newQuantity, productId,storeId], (errUpdate, resultUpdate) => {
+            if (errUpdate) {
+                console.error(errUpdate);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+
+            res.status(200).json({ message: 'Stock quantity updated successfully' });
+        });
+    });
+});
 
   export default router;
