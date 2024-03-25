@@ -17,6 +17,7 @@ import adminRoutes from'./routes/adminRoutes.js';
 import sales from './routes/sales.js';
 import stock from './routes/stock.js';
 import contactUs from './routes/contactUs.js'
+import reviews from './routes/reviews.js'
 
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/', Orders);
 app.use('/', sales)
 app.use('/', stock)
 app.use('/', contactUs)
+app.use('/', reviews)
 
 
 app.use('/', payment)
@@ -177,7 +179,8 @@ app.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
 
     // Query to fetch grocery products within the specified price range
     const selectQuery = `
-        SELECT p.product_name, p.description, p.category, sp.price
+        SELECT p.product_id, p.product_name, p.description, p.category,
+        p.image_url_aldi, p.image_url_lidl, p.image_url_tesco, sp.price, sp.store_id
         FROM product p
         JOIN storeproducts sp ON p.product_id = sp.product_id
         WHERE sp.price BETWEEN ? AND ?;
@@ -188,11 +191,17 @@ app.get('/api/grocery-by-price/:minPrice/:maxPrice', (req, res) => {
             res.status(500).json({ error: 'Internal Server Error' });
         } else {
             // Prepare response object
+            console.log(result[0])
             const groceryList = result.map(row => ({
+                product_id:row.product_id,
                 product_name: row.product_name,
                 description: row.description,
                 category: row.category,
-                price: row.price
+                price: row.price,
+                store_id: row.store_id,
+                image_url_aldi : row.image_url_aldi,
+                image_url_lidl : row.image_url_lidl,
+                image_url_tesco : row.image_url_tesco
             }));
 
             res.json(groceryList);
