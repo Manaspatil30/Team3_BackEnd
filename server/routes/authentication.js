@@ -46,8 +46,6 @@ router.get('/users',  (req, res) => {
 router.get('/user/:id', authMiddleware,(req, res) => {
     const userId = req.params.id;
    const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
-    console.log(tokenUserId)
-    console.log(userId)
     if (userId != tokenUserId) {
         return res.status(403).json({ error: 'You are not authorized to update this user' });
       }
@@ -254,8 +252,6 @@ router.post('/user/signin', (req, res) => {
         }
   
         const user = result[0];
-        console.log(user)
-        console.log(user);
         // Compare the provided password with the stored hashed password
         const validPassword = bcrypt.compare(user.password, password);
         if (!validPassword) {
@@ -272,17 +268,21 @@ router.post('/user/signin', (req, res) => {
     }
   });
 
-
-  router.put('/user/change-password/:id',authMiddleware, async (req, res) => {
+  function getUserById(userId){
+    const query = `Select password from userregistration WHERE user_id = ${userId}`
+    db.query(query,(err,result) => {
+        return result;
+    })
+  }
+  
+  router.put('/user/change-password/:id',authMiddleware, (req, res) => {
     const userId = req.params.id;
-  const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
+  const { oldPassword, newPassword, tokenUserId } = req.body;
 
   // Check if the user ID from the token matches the user ID from the request parameters
   if (userId != tokenUserId) {
     return res.status(403).json({ error: 'You are not authorized to access this user' });
   }
-
-    const { oldPassword, newPassword } = req.body;
 
     // Extract user ID from token or session (assuming you're using JWT)
     //const tokenUserId = req.user.userId; // Assuming userId is stored in the token payload
@@ -291,18 +291,19 @@ router.post('/user/signin', (req, res) => {
     if (userId != tokenUserId) {
         return res.status(403).json({ error: "You are not authorized to change this user's password" });
     }
-
     try {
         // Check if oldPassword matches the current password in the database
-        const user = await getUserById(userId); // Function to retrieve user details from the database
-        const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+        // const getUser = `Select * from userregistration WHERE user_id = ${userId}`
+        const user = getUserById(userId); // Function to retrieve user details from the database
+        console.log(user)
+        const passwordMatch = bcrypt.compare(oldPassword, user);
         if (!passwordMatch) {
             return res.status(401).json({ error: 'Invalid old password' });
         }
 
         // Generate a salt and hash the new password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        const salt = bcrypt.genSalt(10);
+        const hashedPassword = bcrypt.hash(newPassword, salt);
 
         // Update the user's password in the database
         const updateQuery = `
