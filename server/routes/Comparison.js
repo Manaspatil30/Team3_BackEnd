@@ -2,8 +2,8 @@
 app.get('/compare/products/:productId', (req, res) => {
     const query = `
         SELECT s.store_name, sp.price
-        FROM StoreProducts sp
-        JOIN Stores s ON sp.store_id = s.store_id
+        FROM storeproducts sp
+        JOIN stores s ON sp.store_id = s.store_id
         WHERE sp.product_id = ?
         ORDER BY sp.price ASC
     `;
@@ -20,9 +20,9 @@ app.get('/compare/stores', (req, res) => {
     const placeholders = storeIds.map(() => '?').join(',');
     const query = `
         SELECT p.product_name, sp.store_id, s.store_name, sp.price
-        FROM StoreProducts sp
-        JOIN Stores s ON sp.store_id = s.store_id
-        JOIN Product p ON sp.product_id = p.product_id
+        FROM storeproducts sp
+        JOIN stores s ON sp.store_id = s.store_id
+        JOIN product p ON sp.product_id = p.product_id
         WHERE sp.store_id IN (${placeholders})
         ORDER BY p.product_name, sp.price ASC
     `;
