@@ -121,7 +121,7 @@ router.post('/user/add', async (req, res) => {
     }
 });
 
-router.post('/user/add', async (req, res) => {
+router.post('/user/addAdmin', async (req, res) => {
     const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
 
     try {
