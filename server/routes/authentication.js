@@ -122,7 +122,7 @@ router.post('/user/add', async (req, res) => {
 });
 
 router.post('/user/addAdmin', async (req, res) => {
-    const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
+    const { first_name, last_name, phone_number, email, address, MembershipTypeID, password, status } = req.body;
 
     try {
         // Check if the email already exists
@@ -147,7 +147,7 @@ router.post('/user/addAdmin', async (req, res) => {
             const hashedPassword = await bcrypt.hash(password, salt);
 
             const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, 2, ?,'A')";
-            db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword], (err, result) => {
+            db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword, status], (err, result) => {
                 if (err) {
                     console.log(err);
                     res.status(500).send("Failed to add user");
