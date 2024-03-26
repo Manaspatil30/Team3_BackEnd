@@ -121,7 +121,7 @@ router.post('/user/add', async (req, res) => {
     }
 });
 
-router.post('/user/addAdmin', async (req, res) => {
+router.post('/user/add', async (req, res) => {
     const { first_name, last_name, phone_number, email, address, MembershipTypeID, password } = req.body;
 
     try {
@@ -146,7 +146,7 @@ router.post('/user/addAdmin', async (req, res) => {
             // Hash the password using the salt
             const hashedPassword = await bcrypt.hash(password, salt);
 
-            const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, 2, ?,'A')";
+            const insertQuery = "INSERT INTO userregistration (first_name, last_name, phone_number, email, address, MembershipTypeID, password,status) VALUES (?, ?, ?, ?, ?, ?, ?,'A')";
             db.query(insertQuery, [first_name, last_name, phone_number, email, address, MembershipTypeID, hashedPassword], (err, result) => {
                 if (err) {
                     console.log(err);
